@@ -255,6 +255,30 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 /* V49 — validation finale du score solo */
 #soloFinishBtn{margin-top:12px}
 #soloEnd .msg{line-height:1.45}
+
+/* V51 — focus clavier, validation visuelle et préférence d'erreur */
+.validCheck{height:0;overflow:visible;text-align:center;color:#63ef55;font-size:24px;font-weight:950;opacity:0;transform:scale(.65);transition:.15s ease;pointer-events:none}
+.validCheck.show{height:28px;opacity:1;transform:scale(1);padding-top:4px}
+.prefRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;padding:12px;background:#09242e;border:1px solid #1c5362;border-radius:13px}
+.prefText{display:flex;align-items:center;gap:7px;line-height:1.25}
+.helpBtn{width:25px!important;height:25px!important;min-width:25px;padding:0!important;margin:0!important;border-radius:50%!important;background:#173c48!important;color:#bcebf3!important;font-size:15px!important}
+.switchWrap{display:flex;align-items:center;gap:7px;flex:0 0 auto;font-weight:850}
+.switchWrap input{position:absolute;opacity:0;pointer-events:none}
+.switchSlider{width:44px;height:24px;border-radius:999px;background:#314a53;position:relative;transition:.18s}
+.switchSlider:after{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.18s}
+.switchWrap input:checked+.switchSlider{background:#38c96a}
+.switchWrap input:checked+.switchSlider:after{transform:translateX(20px)}
+#clearErrorHelpModal .modalCard{max-width:430px}
+#clearErrorHelpModal p{color:#c7dce2;line-height:1.5}
+
+/* V52 — confidentialité et suppression des données */
+.dangerProfileActions{display:grid;gap:8px;margin-top:16px}
+.dangerOption{background:#301921!important;color:#ff9aaa!important;border:1px solid #7b3443!important}
+.dangerOption.dangerStrong{background:#4a1722!important;color:#fff!important;border-color:#b74459!important}
+.inlineHelp{display:inline-grid;place-items:center;margin-left:5px;width:22px;height:22px;border-radius:50%;background:#173c48;color:#bcebf3;font-size:14px}
+#anonymousHelpModal .modalCard,#resetSoloModal .modalCard,#deleteProfileModal .modalCard{max-width:450px}
+#anonymousHelpModal p,#resetSoloModal p,#deleteProfileModal p{color:#c7dce2;line-height:1.5}
+#deleteProfileModal strong,#resetSoloModal strong{color:#ff8799}
 </style>
 </head>
 <body><div class="app">
@@ -293,6 +317,18 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
   <div id="nickCooldown" class="small center"></div>
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
+  <div class="prefRow">
+    <div class="prefText"><b>Effacer le texte en cas d’erreur</b><button id="clearErrorHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
+    <label class="switchWrap"><span id="clearErrorLabel">Non</span><input id="clearOnError" type="checkbox"><span class="switchSlider"></span></label>
+  </div>
+  <div class="prefRow">
+    <div class="prefText"><b>Anonyme</b><button id="anonymousHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
+    <label class="switchWrap"><span id="anonymousLabel">Non</span><input id="anonymousRanking" type="checkbox"><span class="switchSlider"></span></label>
+  </div>
+  <div class="dangerProfileActions">
+    <button id="resetSoloBest" type="button" class="dangerOption">Supprimer meilleur score solo <span class="inlineHelp" id="resetSoloHelp">?</span></button>
+    <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon profil et toutes mes données <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
+  </div>
   <div class="small center avatarLabel">Avatar — modifiable à tout moment</div>
   <div id="avatarGallery" class="avatarGallery"></div>
   <button id="saveProfile" type="button">Enregistrer mon profil</button>
@@ -337,6 +373,37 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 </section>
 
 
+
+<div id="anonymousHelpModal" class="modal hidden"><div class="modalCard">
+  <button id="closeAnonymousHelp" type="button" class="modalX">×</button>
+  <h3>Mode Anonyme</h3>
+  <p>Si « Anonyme » est activé, ton pseudo et ton score n’apparaissent plus dans les classements publics. Tu peux désactiver cette option plus tard pour réapparaître avec ton meilleur score.</p>
+  <button id="okAnonymousHelp" type="button">Compris</button>
+</div></div>
+
+<div id="resetSoloModal" class="modal hidden"><div class="modalCard">
+  <button id="closeResetSolo" type="button" class="modalX">×</button>
+  <h3>Supprimer le meilleur score solo ?</h3>
+  <p>Ton Palmarès solo repartira à <strong>0 mot</strong> et ton entrée sera supprimée du classement solo. Cette action est irréversible.</p>
+  <div class="confirmActions"><button id="cancelResetSolo" type="button" class="secondary">Annuler</button><button id="confirmResetSolo" type="button" class="leaveButton">Oui, remettre à zéro</button></div>
+</div></div>
+
+<div id="deleteProfileModal" class="modal hidden"><div class="modalCard">
+  <button id="closeDeleteProfile" type="button" class="modalX">×</button>
+  <h3>Supprimer mon profil et toutes mes données ?</h3>
+  <p>Ton profil Mutation, ton pseudo, tes préférences, ton Palmarès solo, ton classement et tes données liées au jeu seront supprimés. Cette action est irréversible.</p>
+  <div class="confirmActions"><button id="cancelDeleteProfile" type="button" class="secondary">Annuler</button><button id="confirmDeleteProfile" type="button" class="leaveButton">Supprimer définitivement</button></div>
+</div></div>
+
+<div id="clearErrorHelpModal" class="modal hidden">
+  <div class="modalCard">
+    <button id="closeClearErrorHelp" type="button" class="modalX" aria-label="Fermer">×</button>
+    <h3>Effacer le texte en cas d’erreur</h3>
+    <p>Permet, lorsqu’un mot n’existe pas dans le dictionnaire ou qu’il a déjà été joué, d’effacer automatiquement le champ de texte en cours.</p>
+    <button id="okClearErrorHelp" type="button">Compris</button>
+  </div>
+</div>
+
 <section id="rankingPanel" class="card hidden">
   <div class="rankingTabs">
     <button id="rankingMultiTab" type="button" class="rankingTab">Multijoueur</button>
@@ -367,7 +434,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
     <div id="soloGaugeText" class="center small"></div>
     <div class="gauge"><div id="soloGaugeFill" class="gaugeFill"></div></div>
     <div id="soloCurrent" class="word">CHAT</div>
-    <form id="soloForm"><input id="soloAnswer" maxlength="28" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Nouveau mot"><button>VALIDER</button></form>
+    <form id="soloForm"><input id="soloAnswer" maxlength="28" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Nouveau mot"><button>VALIDER</button><div id="soloValidCheck" class="validCheck" aria-live="polite">✓</div></form>
     <div id="soloMsg" class="msg"></div>
     <div id="soloHistory" class="history"></div>
   </div>
@@ -434,7 +501,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 <section id="game" class="card hidden">
 <div class="players"><div id="gp1" class="player"><div class="playerLine"><div id="ga1" class="avatarGame">01</div><div><b id="gn1">J1</b><div id="gs1">0 🏆</div></div></div></div><div id="gp2" class="player"><div class="playerLine"><div id="ga2" class="avatarGame">02</div><div><b id="gn2">J2</b><div id="gs2">0 🏆</div></div></div></div></div>
 <div id="turn" class="center small" style="margin-top:14px">Tour de…</div><div class="timerRow"><div id="timer" class="timer">60</div><div id="malus" class="malus"></div></div><div id="gaugeText" class="center small"></div><div class="gauge"><div id="gaugeFill" class="gaugeFill"></div></div><div id="current" class="word">CHAT</div>
-<form id="form"><input id="answer" maxlength="28" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Nouveau mot"><button id="validate">VALIDER</button></form>
+<form id="form"><input id="answer" maxlength="28" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Nouveau mot"><button id="validate">VALIDER</button><div id="gameValidCheck" class="validCheck" aria-live="polite">✓</div></form>
 <div id="choiceBox" class="hidden"><p class="center"><b id="choiceTitle">Vote pour un mot de départ</b></p><div id="choices" class="row"></div><div id="voteInfo" class="msg"></div></div>
 <div id="gameMsg" class="msg"></div><div id="solutions" class="history hidden" style="justify-content:center"></div><div id="history" class="history"></div>
 <button id="nextRound" class="hidden secondary" style="margin-top:14px">JE SUIS PRÊT</button><div id="endActions" class="row hidden" style="margin-top:14px"><button id="replay">Rejouer</button><button id="quitGame" class="leaveButton">Quitter</button></div>
@@ -507,6 +574,7 @@ function refreshProfileEditor(){
 function openProfile(){
   selectedAvatar=profile?.avatarId||"avatar01";
   $("nick").value=profile?.nick||"";
+  $("clearOnError").checked=!!profile?.clearOnError;$("clearErrorLabel").textContent=$("clearOnError").checked?"Oui":"Non";$("anonymousRanking").checked=!!profile?.anonymousRanking;$("anonymousLabel").textContent=$("anonymousRanking").checked?"Oui":"Non";
   $("profileAvatar").innerHTML=avatarMarkup(selectedAvatar);
   $("profileName").textContent=profile?.nick||"Nouveau profil";
   renderAvatarGallery();refreshProfileEditor();
@@ -584,11 +652,17 @@ $("saveProfile").onclick=async()=>{
       avatarId:selectedAvatar,
       updatedAt:serverTimestamp(),
       nickChangedAt:nickChanged?serverTimestamp():(old?.nickChangedAt||old?.updatedAt||serverTimestamp()),
-      soloBest:Number(old?.soloBest||0)
+      soloBest:Number(old?.soloBest||0),
+      clearOnError:$("clearOnError").checked,
+      anonymousRanking:$("anonymousRanking").checked
     };
     await set(ref(db,"profiles/"+uid),p);
-    if(!auth.currentUser?.isAnonymous && Number(p.soloBest||0)>0){
-      await set(ref(db,"soloLeaderboard/"+uid),{nick:p.nick,score:Number(p.soloBest),updatedAt:serverTimestamp()});
+    if(!auth.currentUser?.isAnonymous){
+      if(p.anonymousRanking){
+        await remove(ref(db,"soloLeaderboard/"+uid));
+      }else if(Number(p.soloBest||0)>0){
+        await set(ref(db,"soloLeaderboard/"+uid),{nick:p.nick,score:Number(p.soloBest),updatedAt:serverTimestamp()});
+      }
     }
     let fresh=await get(ref(db,"profiles/"+uid));
     profile=fresh.val();
@@ -702,7 +776,7 @@ function antiInvalid(reason){
 }
 
 let rankingMode="solo";
-function registeredProfile(){return !!(auth.currentUser&&!auth.currentUser.isAnonymous)}
+function registeredProfile(){return !!(auth.currentUser&&!auth.currentUser.isAnonymous&&!profile?.anonymousRanking)}
 function showRankingMode(mode){
   rankingMode=mode;
   $("rankingMultiTab").classList.toggle("active",mode==="multi");
@@ -803,29 +877,42 @@ async function validateSoloFinish(){
   const btn=$("soloFinishBtn"),score=Number(solo.score||0);
   btn.disabled=true;btn.textContent="Validation…";
   try{
-    let oldBest=Number(profile?.soloBest||0);
-    let best=Math.max(oldBest,score);
+    const oldBest=Number(profile?.soloBest||0);
+    const best=Math.max(oldBest,score);
+    const isRegistered=!!(auth.currentUser&&!auth.currentUser.isAnonymous);
+    const isHidden=!!profile?.anonymousRanking;
 
-    if(score>oldBest&&uid){
-      await update(ref(db,"profiles/"+uid),{soloBest:score});
-      profile={...profile,soloBest:score};
+    /* Écriture atomique : le profil et le classement sont validés par Firebase
+       dans une seule opération, ce qui évite le refus intermittent du leaderboard. */
+    const changes={};
+    if(score>oldBest) changes[`profiles/${uid}/soloBest`]=score;
+
+    if(isRegistered){
+      if(isHidden){
+        changes[`soloLeaderboard/${uid}`]=null;
+      }else if(best>0){
+        changes[`soloLeaderboard/${uid}`]={
+          nick:profile.nick,
+          score:best,
+          updatedAt:serverTimestamp()
+        };
+      }
     }
 
-    if(registeredProfile()&&best>0){
-      await set(ref(db,"soloLeaderboard/"+uid),{
-        nick:profile.nick,
-        score:best,
-        updatedAt:serverTimestamp()
-      });
+    if(Object.keys(changes).length) await update(ref(db),changes);
+    if(score>oldBest) profile={...profile,soloBest:score};
+
+    if(isRegistered&&!isHidden&&best>0){
       const pos=await soloRankPosition();
       $("soloBestMsg").textContent=pos
         ? `Vous avez trouvé ${score} mot${score>1?"s":""}, vous êtes désormais ${ordinalFr(pos)} au classement.`
-        : `Vous avez trouvé ${score} mot${score>1?"s":""}.`;
-      $("soloBestMsg").className="msg ok";
+        : `Vous avez trouvé ${score} mot${score>1?"s":""}. Score enregistré.`;
+    }else if(isRegistered&&isHidden){
+      $("soloBestMsg").textContent=`Vous avez trouvé ${score} mot${score>1?"s":""}. Ton score est enregistré, mais le mode Anonyme te masque du classement.`;
     }else{
       $("soloBestMsg").textContent=`Vous avez trouvé ${score} mot${score>1?"s":""}. Seuls les joueurs enregistrés apparaissent dans le classement solo.`;
-      $("soloBestMsg").className="msg ok";
     }
+    $("soloBestMsg").className="msg ok";
 
     refreshProfileEditor();
     btn.textContent="Retour à l’accueil";
@@ -838,7 +925,7 @@ async function validateSoloFinish(){
     };
   }catch(e){
     console.error("Validation score solo:",e);
-    $("soloBestMsg").textContent="Impossible de valider le score. Réessaie.";
+    $("soloBestMsg").textContent=`Impossible de valider le score${e?.code?` (${e.code})`:""}. Réessaie.`;
     $("soloBestMsg").className="msg bad";
     btn.disabled=false;btn.textContent="Terminer la partie";
   }
@@ -854,15 +941,72 @@ $("confirmSoloQuit").onclick=()=>{
   screen("home");
   showPlayMenu();
 };
+
+
+$("anonymousRanking").onchange=()=>{$("anonymousLabel").textContent=$("anonymousRanking").checked?"Oui":"Non"};
+
+function openSimpleModal(id){$(id).classList.remove("hidden")}
+function closeSimpleModal(id){$(id).classList.add("hidden")}
+$("anonymousHelp").onclick=()=>openSimpleModal("anonymousHelpModal");
+$("closeAnonymousHelp").onclick=$("okAnonymousHelp").onclick=()=>closeSimpleModal("anonymousHelpModal");
+
+$("resetSoloHelp").onclick=e=>{e.stopPropagation();alert("Remet ton meilleur score solo à 0 mot et te retire du classement solo.")};
+$("resetSoloBest").onclick=()=>openSimpleModal("resetSoloModal");
+$("closeResetSolo").onclick=$("cancelResetSolo").onclick=()=>closeSimpleModal("resetSoloModal");
+$("confirmResetSolo").onclick=async()=>{
+  const b=$("confirmResetSolo");b.disabled=true;
+  try{
+    await update(ref(db,"profiles/"+uid),{soloBest:0});
+    await remove(ref(db,"soloLeaderboard/"+uid));
+    profile={...profile,soloBest:0};
+    refreshProfileEditor();closeSimpleModal("resetSoloModal");
+    msg("profileMsg","Meilleur score solo remis à 0.","ok");
+  }catch(e){console.error("Reset solo:",e);msg("profileMsg","Impossible de remettre le score à zéro.","bad")}
+  finally{b.disabled=false}
+};
+
+$("deleteProfileHelp").onclick=e=>{e.stopPropagation();alert("Supprime définitivement ton profil Mutation et les données de jeu associées à ce compte.")};
+$("deleteProfileData").onclick=()=>openSimpleModal("deleteProfileModal");
+$("closeDeleteProfile").onclick=$("cancelDeleteProfile").onclick=()=>closeSimpleModal("deleteProfileModal");
+$("confirmDeleteProfile").onclick=async()=>{
+  const b=$("confirmDeleteProfile");b.disabled=true;
+  try{
+    const myUid=uid;
+    await remove(ref(db,"soloLeaderboard/"+myUid)).catch(()=>{});
+    await remove(ref(db,"antiCheatSignals/"+myUid)).catch(()=>{});
+    await remove(ref(db,"profiles/"+myUid));
+    profile=null;
+    closeSimpleModal("deleteProfileModal");
+    await signOut(auth);
+  }catch(e){
+    console.error("Suppression profil:",e);
+    msg("profileMsg","Impossible de supprimer toutes les données. Réessaie.","bad");
+    b.disabled=false;
+  }
+};
+
+function refocusInput(id){requestAnimationFrame(()=>{const el=$(id);if(el&&!el.disabled){el.focus({preventScroll:true});try{const n=el.value.length;el.setSelectionRange(n,n)}catch{}}})}
+function clearErroredInput(id){if(profile?.clearOnError)$(id).value="";refocusInput(id)}
+let checkTimers={};
+function showValidCheck(id){
+  const el=$(id);if(!el)return;
+  el.classList.add("show");clearTimeout(checkTimers[id]);
+  checkTimers[id]=setTimeout(()=>el.classList.remove("show"),850);
+}
+$("clearOnError").onchange=()=>{$("clearErrorLabel").textContent=$("clearOnError").checked?"Oui":"Non"};
+$("clearErrorHelp").onclick=()=>$("clearErrorHelpModal").classList.remove("hidden");
+$("closeClearErrorHelp").onclick=$("okClearErrorHelp").onclick=()=>$("clearErrorHelpModal").classList.add("hidden");
+$("clearErrorHelpModal").onclick=e=>{if(e.target===$("clearErrorHelpModal"))$("clearErrorHelpModal").classList.add("hidden")};
+
 $("soloForm").onsubmit=e=>{
   e.preventDefault();if(!solo?.current)return;
   let w=norm($("soloAnswer").value);if(!w)return;
-  if(soloUsed().has(key(w))){antiInvalid("solo: mot déjà joué");return msg("soloMsg","Mot déjà joué.","bad")}
-  if(!mutation(solo.current,w)){antiInvalid("solo: mutation invalide");return msg("soloMsg","Ajoute, retire ou remplace exactement une lettre.","bad")}
-  if(!dictReady||!WORDS.has(key(w))){antiInvalid("solo: mot hors dictionnaire");return msg("soloMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad")}
+  if(soloUsed().has(key(w))){antiInvalid("solo: mot déjà joué");msg("soloMsg","Mot déjà joué.","bad");clearErroredInput("soloAnswer");return}
+  if(!mutation(solo.current,w)){antiInvalid("solo: mutation invalide");msg("soloMsg","Ajoute, retire ou remplace exactement une lettre.","bad");refocusInput("soloAnswer");return}
+  if(!dictReady||!WORDS.has(key(w))){antiInvalid("solo: mot hors dictionnaire");msg("soloMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad");clearErroredInput("soloAnswer");return}
   antiValidMove();
   w=WORD_FORM.get(key(w))||w;solo.current=w;solo.history.push(w);solo.score++;solo.startedAt=now();
-  $("soloAnswer").value="";msg("soloMsg","","");renderSolo();setTimeout(()=>$("soloAnswer").focus(),0);
+  $("soloAnswer").value="";msg("soloMsg","","");showValidCheck("soloValidCheck");renderSolo();refocusInput("soloAnswer");
 };
 
 $("showCreate").onclick=()=>{$("tabPlay").disabled=true;$("tabPlay").classList.remove("active");$("playMenu").classList.add("hidden");
@@ -929,6 +1073,6 @@ async function revote(){let a=starts();await runTransaction(ref(db,'rooms/'+room
 async function endRound(win,text){let sols=possible(room?.game?.current,3);await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||d.status!=="playing")return;let loser=other(win);d.players[loser].lives=Math.max(0,(d.players[loser].lives??3)-1);d.status=d.players[loser].lives<=0?"finished":"roundEnd";d.game.message=d.status==="finished"?`${d.players[win].nick} remporte la partie !`:text+` ${d.players[loser].nick} perd un ❤️.`;d.game.solutions=sols;d.game.roundReady={};d.game.roundEndedAt=now();d.lastActivity=now();d.deleteAfter=now()+(d.status==="finished"?CLOSED:TTL);return d})}
 $('nextRound').onclick=async()=>{if(room?.status!=='roundEnd')return;let me=slot();await runTransaction(ref(db,'rooms/'+roomCode),d=>{if(!d||d.status!=='roundEnd')return;d.game.roundReady=d.game.roundReady||{};d.game.roundReady[me]=true;if(d.game.roundReady.p1&&d.game.roundReady.p2){let a=starts(),round=(d.game.round||1)+1;if(a.length<3)return;d.status='voting';d.game={round,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:'',voteStartedAt:now()};d.deleteAfter=now()+TTL}return d})};
 async function abandon(op){let c=roomCode;if(!c)return;await runTransaction(ref(db,"rooms/"+c),d=>{if(!d||d.players?.[op]?.online!==false||now()-(d.players[op].lastSeen||now())<GRACE)return;return null})}
-$("form").onsubmit=async e=>{e.preventDefault();let me=slot(),g=room?.game,w=norm($("answer").value),state=room?.status;if(!w||!["opening","playing"].includes(state)||(state==="playing"&&me!==g.turn))return;if(hist(g).some(x=>key(x.word)===key(w)))return msg("gameMsg","Mot déjà joué.","bad");if(!mutation(g.current,w))return msg("gameMsg","Ajoute, retire ou remplace exactement une lettre.","bad");if(!dictReady||!WORDS.has(key(w)))return msg("gameMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad");w=WORD_FORM.get(key(w))||w;let cur=g.current,seq=g.seq||0,res=await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||!["opening","playing"].includes(d.status)||d.game.current!==cur||(d.game.seq||0)!==seq||(d.status==="playing"&&d.game.turn!==me)||hist(d.game).some(x=>key(x.word)===key(w)))return;let n=seq+1;d.game.current=w;d.game.seq=n;d.game.totalWords=(d.game.totalWords||0)+1;d.game.history=d.game.history||{};d.game.history[n]={seq:n,word:w,by:me,at:now()};d.status="playing";d.game.turn=other(me);d.game.turnStartedAt=now();d.game.message="";d.lastActivity=now();d.deleteAfter=now()+TTL;return d});if(res.committed)$("answer").value=""};
+$("form").onsubmit=async e=>{e.preventDefault();let me=slot(),g=room?.game,w=norm($("answer").value),state=room?.status;if(!w||!["opening","playing"].includes(state)||(state==="playing"&&me!==g.turn))return;if(hist(g).some(x=>key(x.word)===key(w))){msg("gameMsg","Mot déjà joué.","bad");clearErroredInput("answer");return}if(!mutation(g.current,w)){msg("gameMsg","Ajoute, retire ou remplace exactement une lettre.","bad");refocusInput("answer");return}if(!dictReady||!WORDS.has(key(w))){msg("gameMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad");clearErroredInput("answer");return}w=WORD_FORM.get(key(w))||w;let cur=g.current,seq=g.seq||0,res=await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||!["opening","playing"].includes(d.status)||d.game.current!==cur||(d.game.seq||0)!==seq||(d.status==="playing"&&d.game.turn!==me)||hist(d.game).some(x=>key(x.word)===key(w)))return;let n=seq+1;d.game.current=w;d.game.seq=n;d.game.totalWords=(d.game.totalWords||0)+1;d.game.history=d.game.history||{};d.game.history[n]={seq:n,word:w,by:me,at:now()};d.status="playing";d.game.turn=other(me);d.game.turnStartedAt=now();d.game.message="";d.lastActivity=now();d.deleteAfter=now()+TTL;return d});if(res.committed){$("answer").value="";showValidCheck("gameValidCheck");refocusInput("answer")}};
 async function leave(){let c=roomCode,me=slot();if(!c||!me)return screen("home");if(!confirm("Êtes-vous sûr(e) de vouloir quitter ?"))return;let r=ref(db,"rooms/"+c);leaving=true;if(unsub){unsub();unsub=null}clearSession();roomCode=null;try{await presenceTask}catch{}try{if(disc){await disc.cancel();disc=null}await remove(r)}catch(e){leaving=false;roomCode=c;subscribe(c);return msg(room?.status==="lobby"?"lobbyMsg":"gameMsg","Impossible de supprimer la salle : "+(e?.code||e?.message||"erreur Firebase"),"bad")}room=null;clearInterval(tick);screen("home");msg("homeMsg","Tu as quitté la salle.","ok")}
 $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=async()=>{if(room?.status!=="finished")return;let me=slot();await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||d.status!=="finished"||!d.players?.p2)return;d.game=d.game||{};d.game.replayVotes=d.game.replayVotes||{};d.game.replayVotes[me]=true;if(d.game.replayVotes.p1&&d.game.replayVotes.p2){let a=starts();if(a.length<3)return;d.players.p1.lives=d.players.p2.lives=3;d.status="voting";d.game={round:1,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:"",voteStartedAt:now()};d.lastActivity=now();d.deleteAfter=now()+TTL}return d})};</script></body></html>
