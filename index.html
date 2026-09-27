@@ -192,6 +192,28 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 .soloModeCard b{color:#021116!important}
 .soloModeCard span{color:#174550!important;font-weight:650}
+
+/* V44 — navigation centrée + formulaire de contact */
+.tabs{justify-content:center!important;text-align:center}
+.tabs button{flex:0 1 150px;text-align:center}
+
+#contactModal .modalCard{max-width:520px}
+#contactModal .modalX{color:#ff405f!important;border-color:#a83c50!important}
+.contactIntro{color:#bcd3db;line-height:1.5;margin-bottom:14px}
+.contactForm{display:grid;gap:10px}
+.contactForm label{display:grid;gap:5px;font-weight:800;color:#e8f8fb}
+.contactForm input,.contactForm select,.contactForm textarea{
+  width:100%;box-sizing:border-box;background:#071d26;color:#fff;
+  border:1px solid #286173;border-radius:11px;padding:11px 12px;font:inherit
+}
+.contactForm textarea{min-height:130px;resize:vertical}
+.contactForm input[readonly]{opacity:.85}
+.contactForm button[type=submit]{margin-top:4px}
+.contactStatus{min-height:20px;text-align:center;font-weight:750}
+@media(max-width:520px){
+  .tabs{gap:6px}
+  .tabs button{flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
+}
 </style>
 </head>
 <body><div class="app">
@@ -311,6 +333,38 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
       <button id="cancelSoloQuit" type="button" class="secondary">Continuer la partie</button>
       <button id="confirmSoloQuit" type="button" class="leaveButton">Quitter sans enregistrer</button>
     </div>
+  </div>
+</div>
+
+
+<div id="contactModal" class="modal hidden">
+  <div class="modalCard">
+    <button id="closeContact" type="button" class="modalX" aria-label="Fermer">×</button>
+    <h3>Contact</h3>
+    <p class="contactIntro">Tu peux me contacter pour signaler un bug, proposer ou signaler un mot du dictionnaire, signaler une suspicion de triche, ou pour toute autre remarque concernant Mutation.</p>
+    <form id="contactForm" class="contactForm">
+      <label>Pseudo
+        <input id="contactNick" name="Pseudo" type="text" readonly>
+      </label>
+      <label>E-mail
+        <input id="contactEmail" name="Email" type="email" maxlength="120" autocomplete="email" required placeholder="ton@email.fr">
+      </label>
+      <label>Sujet
+        <select id="contactSubject" name="Sujet" required>
+          <option value="">Choisir un sujet</option>
+          <option>Signaler un bug</option>
+          <option>Mot du dictionnaire</option>
+          <option>Signaler une suspicion de triche</option>
+          <option>Autre</option>
+        </select>
+      </label>
+      <label>Message
+        <textarea id="contactMessage" name="Message" maxlength="3000" required placeholder="Décris ta demande…"></textarea>
+      </label>
+      <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
+      <button id="contactSend" type="submit">Envoyer le message</button>
+      <div id="contactStatus" class="contactStatus"></div>
+    </form>
   </div>
 </div>
 
@@ -510,6 +564,38 @@ dictionary();
 onAuthStateChanged(auth,async u=>{if(u){await loadProfile(u);await cleanup();if(profile)await restoreSession()}else{uid=null;profile=null;$("authBox").classList.remove("hidden");$("profileBox").classList.add("hidden");$("playActions").classList.add("hidden");}});
 
 onValue(ref(db,".info/connected"),s=>{let ok=s.val()===true;$("netBanner").classList.toggle("hidden",ok);if(ok&&roomCode&&!leaving)presence()});
+
+
+const openContact=()=>{
+  $("contactNick").value=profile?.nick||"Invité";
+  $("contactStatus").textContent="";
+  $("contactModal").classList.remove("hidden");
+};
+if($("footerContact"))$("footerContact").onclick=openContact;
+$("closeContact").onclick=()=>$("contactModal").classList.add("hidden");
+$("contactModal").onclick=e=>{if(e.target===$("contactModal"))$("contactModal").classList.add("hidden")};
+$("contactForm").onsubmit=async e=>{
+  e.preventDefault();
+  const btn=$("contactSend"),status=$("contactStatus");
+  btn.disabled=true;status.className="contactStatus";status.textContent="Envoi en cours…";
+  const fd=new FormData(e.currentTarget);
+  fd.set("Pseudo",profile?.nick||"Invité");
+  fd.set("_subject",`Mutation — ${$("contactSubject").value} — ${profile?.nick||"Invité"}`);
+  fd.set("_template","table");
+  fd.set("_captcha","false");
+  try{
+    const r=await fetch("https://formsubmit.co/ajax/sarkessel@gmail.com",{
+      method:"POST",headers:{"Accept":"application/json"},body:fd
+    });
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    status.className="contactStatus ok";status.textContent="Message envoyé. Merci !";
+    $("contactEmail").value="";$("contactSubject").value="";$("contactMessage").value="";
+  }catch(err){
+    console.error("Contact:",err);
+    status.className="contactStatus bad";
+    status.textContent="L’envoi a échoué. Réessaie dans un instant.";
+  }finally{btn.disabled=false}
+};
 
 function soloUsed(){return new Set((solo?.history||[]).map(key))}
 function soloTimerInfo(){let n=Math.max(0,solo?.score||0),steps=Math.min(9,Math.floor(n/10)),malus=steps*5,limit=Math.max(15,60-malus),toNext=limit>15?10-(n%10):0;return{malus,limit,toNext,progress:limit>15?(n%10)*10:100}}
