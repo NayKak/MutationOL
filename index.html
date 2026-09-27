@@ -340,6 +340,25 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   }
 }
 
+
+/* V69 — profil réorganisé */
+.profileHead{position:relative}
+#soloPalmares{
+  position:absolute;right:0;top:0;
+  width:auto!important;margin:0!important;padding:7px 10px!important;
+  font-size:12px!important;white-space:nowrap
+}
+.profileNickRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.profileNickRow #nick{margin:6px 0}
+#editNickBtn{width:auto!important;margin:0!important;padding:12px 14px!important}
+#nickEditInfo{grid-column:1/-1;margin:0 0 4px}
+#existingProfileOptions .dangerProfileActions{margin-top:12px}
+#resetSoloBest,#deleteProfileData{font-size:15px!important}
+@media(max-width:430px){
+  #soloPalmares{font-size:11px!important;padding:6px 8px!important}
+  .profileHead{padding-right:118px}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -375,11 +394,15 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 <div id="profileBox" class="hidden">
   <div class="profileHead"><div id="profileAvatar" class="avatarMini">01</div><div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div></div>
   <label class="small">Pseudo</label>
-  <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
+  <div class="profileNickRow">
+    <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
+    <button id="editNickBtn" type="button" class="secondary hidden">Modifier</button>
+    <div id="nickEditInfo" class="small hidden"></div>
+  </div>
   <div id="nickAvailabilityMsg" class="msg hidden" style="margin:2px 0 6px;min-height:0"></div>
-  <div id="nickCooldown" class="small center"></div>
-  <div id="existingProfileOptions">
+  <div id="nickCooldown" class="small center hidden"></div>
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
+<div id="existingProfileOptions">
     <div class="prefRow">
       <div class="prefText"><b>Effacer le texte en cas d’erreur</b><button id="clearErrorHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
       <label class="switchWrap"><span id="clearErrorLabel">Non</span><input id="clearOnError" type="checkbox"><span class="switchSlider"></span></label>
@@ -389,11 +412,11 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
       <label class="switchWrap"><span id="anonymousLabel">Non</span><input id="anonymousRanking" type="checkbox"><span class="switchSlider"></span></label>
     </div>
     <div class="dangerProfileActions">
-      <button id="resetSoloBest" type="button" class="dangerOption">Supprimer meilleur score solo <span class="inlineHelp" id="resetSoloHelp">?</span></button>
-      <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon profil et toutes mes données <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
+      <button id="resetSoloBest" type="button" class="dangerOption">Supprimer score solo <span class="inlineHelp" id="resetSoloHelp">?</span></button>
+      <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon compte <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
     </div>
 </div>
-  <div class="small center avatarLabel">Avatar — modifiable à tout moment</div>
+  <div class="small center avatarLabel">Avatar</div>
   <div id="avatarGallery" class="avatarGallery"></div>
   <button id="saveProfile" type="button">Enregistrer mon profil</button>
   <button id="cancelProfileCreation" type="button" class="secondary hidden">← Retour</button>
@@ -646,9 +669,34 @@ function refreshProfileEditor(){
   $("cancelProfileCreation").classList.toggle("hidden",existing);
   $("closeProfileBtn").classList.toggle("hidden",!existing);
 }
+function nickDaysRemaining(){
+  const last=Number(profile?.nickChangedAt||profile?.updatedAt||0);
+  if(!last)return 0;
+  return Math.max(0,Math.ceil((NICK_DELAY-(now()-last))/86400000));
+}
+function setNickEditMode(editing=false){
+  const existing=!!profile,btn=$("editNickBtn"),info=$("nickEditInfo"),input=$("nick");
+  if(!existing){input.disabled=false;btn.classList.add("hidden");info.classList.add("hidden");return}
+  const days=nickDaysRemaining();
+  btn.classList.remove("hidden");
+  input.disabled=!editing;
+  if(days>0){
+    btn.disabled=false;
+    btn.textContent="Modifier";
+    info.textContent=`Modifiable dans ${days} jour${days>1?"s":""}`;
+    info.classList.toggle("hidden",!editing);
+    if(editing)input.disabled=true;
+  }else{
+    btn.disabled=false;btn.textContent=editing?"Annuler":"Modifier";
+    info.classList.add("hidden");
+    input.disabled=!editing;
+    if(editing)setTimeout(()=>input.focus(),0);
+  }
+}
 function openProfile(){
   selectedAvatar=profile?.avatarId||"avatar01";
   $("nick").value=profile?.nick||"";
+  setNickEditMode(false);
   $("clearOnError").checked=!!profile?.clearOnError;$("clearErrorLabel").textContent=$("clearOnError").checked?"Oui":"Non";$("anonymousRanking").checked=!!profile?.anonymousRanking;$("anonymousLabel").textContent=$("anonymousRanking").checked?"Oui":"Non";
   $("profileAvatar").innerHTML=avatarMarkup(selectedAvatar);
   $("profileName").textContent=profile?.nick||"Nouveau profil";
@@ -666,7 +714,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V68", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V69", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -727,6 +775,14 @@ $("closeProfileBtn").onclick=async()=>{
     return;
   }
   closeProfile();
+};
+$("editNickBtn").onclick=()=>{
+  const days=nickDaysRemaining();
+  if(days>0){
+    const info=$("nickEditInfo");info.textContent=`Modifiable dans ${days} jour${days>1?"s":""}`;info.classList.remove("hidden");
+    return;
+  }
+  setNickEditMode($("nick").disabled);
 };
 $("nick").addEventListener("input",()=>{const n=$("nickAvailabilityMsg");if(n){n.textContent="";n.className="msg hidden"}});
 $("saveProfile").onclick=async()=>{
