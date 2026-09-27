@@ -592,6 +592,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
+  console.info("Mutation Online — V62", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
