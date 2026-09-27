@@ -994,6 +994,36 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   #profileBox #soloPalmares{font-size:10px!important;padding:0!important}
 }
 
+
+/* V89 — statistiques profil plus compactes */
+#profileBox .profileStats{
+  max-width:205px!important;
+  grid-template-rows:repeat(3,34px)!important;
+}
+#profileBox .profileStats > div{
+  min-height:34px!important;
+  height:34px!important;
+  padding:0 9px!important;
+  gap:7px!important;
+}
+#profileBox .profileStats span,
+#profileBox .profileStats b,
+#profileBox #soloPalmares{
+  font-size:10px!important;
+  line-height:1!important;
+}
+@media(max-width:480px){
+  #profileBox .profileStats{
+    max-width:190px!important;
+    grid-template-rows:repeat(3,32px)!important;
+  }
+  #profileBox .profileStats > div{
+    min-height:32px!important;
+    height:32px!important;
+    padding:0 8px!important;
+  }
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1394,7 +1424,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V88", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V89", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
