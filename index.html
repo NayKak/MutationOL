@@ -532,6 +532,21 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   }
 }
 
+
+/* V76 — lettres colorées de l'exemple : même taille que les lettres blanches */
+.rulesExample .red,
+.rulesExample .bad,
+.rulesExample .mutationRed,
+.rulesExample .removed,
+.rulesExample .added,
+.rulesExample .changed,
+.rulesExample span[style*="color"]{
+  font-size:1em!important;
+  line-height:inherit!important;
+  font-weight:inherit!important;
+  vertical-align:baseline!important;
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -906,7 +921,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V75", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V76", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
