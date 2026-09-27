@@ -800,6 +800,106 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   margin:0!important;
 }
 
+
+/* V86 — entête : une seule carte de 3 lignes strictement identiques */
+#profileBox .profileHead{
+  grid-template-columns:auto minmax(0,1fr) minmax(190px,220px)!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+#profileBox .profileStats{
+  width:100%!important;
+  max-width:220px!important;
+  justify-self:end!important;
+  display:grid!important;
+  grid-template-rows:repeat(3,1fr)!important;
+  gap:0!important;
+  overflow:hidden!important;
+  border:1px solid #286678!important;
+  border-radius:16px!important;
+  background:#0a252d!important;
+}
+#profileBox .profileStats > div{
+  min-height:38px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:7px 10px!important;
+  box-sizing:border-box!important;
+}
+#profileBox .profileStats > div + div{
+  border-top:1px solid #28515d!important;
+}
+#profileBox .profileStats span{
+  color:#9bb4bc!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  text-align:left!important;
+}
+#profileBox .profileStats b{
+  color:#dff9ff!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  text-align:right!important;
+}
+#profileBox .profileStats > div:first-child b{color:#62e66d!important}
+
+/* V86 — rythme vertical strict du profil */
+#profileBox{
+  --profile-section-gap:18px;
+  --profile-item-gap:14px;
+}
+#profileBox .profileSectionTitle{
+  margin:var(--profile-section-gap) 0 var(--profile-section-gap)!important;
+  padding:0!important;
+  line-height:1!important;
+}
+#profileBox .profileNickRow,
+#profileBox .avatarGallery,
+#existingProfileOptions .prefRow,
+#existingProfileOptions .dangerProfileActions{
+  margin:0!important;
+}
+#existingProfileOptions{
+  display:block!important;
+}
+#existingProfileOptions > .profileSectionTitle{
+  margin:var(--profile-section-gap) 0 var(--profile-section-gap)!important;
+}
+#existingProfileOptions .prefRow + .prefRow{
+  margin-top:var(--profile-item-gap)!important;
+}
+#existingProfileOptions .dangerProfileActions{
+  display:grid!important;
+  gap:var(--profile-item-gap)!important;
+}
+#existingProfileOptions .dangerProfileActions > *{
+  margin:0!important;
+}
+#profileBox .avatarGallery{
+  padding:0!important;
+  margin-bottom:0!important;
+}
+#profileBox #saveProfile{
+  margin-top:var(--profile-section-gap)!important;
+}
+#profileBox #cancelProfileCreation,
+#profileBox #closeProfileBtn{
+  margin-top:var(--profile-item-gap)!important;
+}
+@media(max-width:480px){
+  #profileBox .profileHead{
+    grid-template-columns:58px minmax(0,1fr) minmax(170px,190px)!important;
+    gap:10px!important;
+  }
+  #profileBox .profileStats{max-width:190px!important}
+  #profileBox .profileStats > div{min-height:36px!important;padding:6px 8px!important}
+  #profileBox .profileStats span,#profileBox .profileStats b{font-size:10px!important}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -836,12 +936,10 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div class="profileHead">
   <div id="profileAvatar" class="avatarMini">01</div>
   <div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div>
-  <div>
-  <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
-  <div class="profileRankLines">
-    <div>Classement solo : <b id="profileSoloRank">—</b></div>
-    <div>Classement multijoueur : <b id="profileMultiRank">À venir</b></div>
-  </div>
+  <div class="profileStats">
+  <div><span>Palmarès solo</span><b id="soloPalmares">0 mot</b></div>
+  <div><span>Classement solo</span><b id="profileSoloRank">—</b></div>
+  <div><span>Classement multijoueur</span><b id="profileMultiRank">À venir</b></div>
 </div>
 </div>
   <div class="profileSectionTitle">──── Pseudo ────</div>
@@ -1202,7 +1300,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V85", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V86", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
