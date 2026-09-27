@@ -283,6 +283,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 /* V64 — fenêtres d'aide du profil plus compactes sur mobile */
 #clearErrorHelpModal .modalCard,
 #anonymousHelpModal .modalCard,
+#resetSoloHelpModal .modalCard,
+#deleteProfileHelpModal .modalCard,
 #resetSoloModal .modalCard,
 #deleteProfileModal .modalCard{
   width:min(390px,calc(100vw - 36px))!important;
@@ -292,6 +294,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal .modalClose,
 #anonymousHelpModal .modalClose,
+#resetSoloHelpModal .modalClose,
+#deleteProfileHelpModal .modalClose,
 #resetSoloModal .modalClose,
 #deleteProfileModal .modalClose{
   width:34px!important;
@@ -303,6 +307,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal h2,
 #anonymousHelpModal h2,
+#resetSoloHelpModal h2,
+#deleteProfileHelpModal h2,
 #resetSoloModal h2,
 #deleteProfileModal h2{
   font-size:20px!important;
@@ -311,6 +317,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal p,
 #anonymousHelpModal p,
+#resetSoloHelpModal p,
+#deleteProfileHelpModal p,
 #resetSoloModal p,
 #deleteProfileModal p{
   font-size:15px!important;
@@ -319,6 +327,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal button:not(.modalClose),
 #anonymousHelpModal button:not(.modalClose),
+#resetSoloHelpModal button:not(.modalClose),
+#deleteProfileHelpModal button:not(.modalClose),
 #resetSoloModal button:not(.modalClose),
 #deleteProfileModal button:not(.modalClose){
   padding:11px 12px!important;
@@ -379,6 +389,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 /* Les aides/confirmations du profil reprennent le centrage du popup Règles. */
 #clearErrorHelpModal,
 #anonymousHelpModal,
+#resetSoloHelpModal,
+#deleteProfileHelpModal,
 #resetSoloModal,
 #deleteProfileModal{
   display:grid!important;
@@ -387,10 +399,14 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal.hidden,
 #anonymousHelpModal.hidden,
+#resetSoloHelpModal.hidden,
+#deleteProfileHelpModal.hidden,
 #resetSoloModal.hidden,
 #deleteProfileModal.hidden{display:none!important}
 #clearErrorHelpModal .modalCard,
 #anonymousHelpModal .modalCard,
+#resetSoloHelpModal .modalCard,
+#deleteProfileHelpModal .modalCard,
 #resetSoloModal .modalCard,
 #deleteProfileModal .modalCard{
   width:min(430px,100%)!important;
@@ -400,6 +416,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal h2,
 #anonymousHelpModal h2,
+#resetSoloHelpModal h2,
+#deleteProfileHelpModal h2,
 #resetSoloModal h2,
 #deleteProfileModal h2{
   margin:0 38px 14px 0!important;
@@ -447,6 +465,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 /* V73 — toutes les fenêtres d'aide "?" parfaitement centrées, desktop + mobile */
 #clearErrorHelpModal,
 #anonymousHelpModal,
+#resetSoloHelpModal,
+#deleteProfileHelpModal,
 #resetSoloModal,
 #deleteProfileModal{
   position:fixed!important;
@@ -464,18 +484,24 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 }
 #clearErrorHelpModal:not(.hidden),
 #anonymousHelpModal:not(.hidden),
+#resetSoloHelpModal:not(.hidden),
+#deleteProfileHelpModal:not(.hidden),
 #resetSoloModal:not(.hidden),
 #deleteProfileModal:not(.hidden){
   display:flex!important;
 }
 #clearErrorHelpModal.hidden,
 #anonymousHelpModal.hidden,
+#resetSoloHelpModal.hidden,
+#deleteProfileHelpModal.hidden,
 #resetSoloModal.hidden,
 #deleteProfileModal.hidden{
   display:none!important;
 }
 #clearErrorHelpModal .modalCard,
 #anonymousHelpModal .modalCard,
+#resetSoloHelpModal .modalCard,
+#deleteProfileHelpModal .modalCard,
 #resetSoloModal .modalCard,
 #deleteProfileModal .modalCard{
   position:relative!important;
@@ -621,6 +647,22 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <button id="okAnonymousHelp" type="button">Compris</button>
 </div></div>
 
+<div id="resetSoloHelpModal" class="modal hidden">
+  <div class="modalCard">
+    <button id="closeResetSoloHelp" type="button" class="modalClose">×</button>
+    <h2>Supprimer score solo</h2>
+    <p>Remet ton meilleur score solo à <strong>0 mot</strong> et te retire du classement solo.</p>
+    <button id="okResetSoloHelp" type="button">Compris</button>
+  </div>
+</div>
+<div id="deleteProfileHelpModal" class="modal hidden">
+  <div class="modalCard">
+    <button id="closeDeleteProfileHelp" type="button" class="modalClose">×</button>
+    <h2>Supprimer mon compte</h2>
+    <p>Supprime définitivement ton profil Mutation et les données de jeu associées à ce compte.</p>
+    <button id="okDeleteProfileHelp" type="button">Compris</button>
+  </div>
+</div>
 <div id="resetSoloModal" class="modal hidden"><div class="modalCard">
   <button id="closeResetSolo" type="button" class="modalX">×</button>
   <h3>Supprimer le meilleur score solo ?</h3>
@@ -866,7 +908,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V73", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V74", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -1256,7 +1298,8 @@ function closeSimpleModal(id){$(id).classList.add("hidden")}
 $("anonymousHelp").onclick=()=>openSimpleModal("anonymousHelpModal");
 $("closeAnonymousHelp").onclick=$("okAnonymousHelp").onclick=()=>closeSimpleModal("anonymousHelpModal");
 
-$("resetSoloHelp").onclick=e=>{e.stopPropagation();alert("Remet ton meilleur score solo à 0 mot et te retire du classement solo.")};
+$("resetSoloHelp").onclick=e=>{e.stopPropagation();openSimpleModal("resetSoloHelpModal")};
+$("closeResetSoloHelp").onclick=$("okResetSoloHelp").onclick=()=>closeSimpleModal("resetSoloHelpModal");
 $("resetSoloBest").onclick=()=>openSimpleModal("resetSoloModal");
 $("closeResetSolo").onclick=$("cancelResetSolo").onclick=()=>closeSimpleModal("resetSoloModal");
 $("confirmResetSolo").onclick=async()=>{
@@ -1273,7 +1316,8 @@ $("confirmResetSolo").onclick=async()=>{
   }finally{b.disabled=false}
 };
 
-$("deleteProfileHelp").onclick=e=>{e.stopPropagation();alert("Supprime définitivement ton profil Mutation et les données de jeu associées à ce compte.")};
+$("deleteProfileHelp").onclick=e=>{e.stopPropagation();openSimpleModal("deleteProfileHelpModal")};
+$("closeDeleteProfileHelp").onclick=$("okDeleteProfileHelp").onclick=()=>closeSimpleModal("deleteProfileHelpModal");
 $("deleteProfileData").onclick=()=>openSimpleModal("deleteProfileModal");
 $("closeDeleteProfile").onclick=$("cancelDeleteProfile").onclick=()=>closeSimpleModal("deleteProfileModal");
 $("confirmDeleteProfile").onclick=async()=>{
