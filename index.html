@@ -376,6 +376,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div class="profileHead"><div id="profileAvatar" class="avatarMini">01</div><div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div></div>
   <label class="small">Pseudo</label>
   <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
+  <div id="nickAvailabilityMsg" class="msg hidden" style="margin:2px 0 6px;min-height:0"></div>
   <div id="nickCooldown" class="small center"></div>
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
   <div class="prefRow">
@@ -659,7 +660,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V65", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V66", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -712,12 +713,20 @@ $("closeProfileBtn").onclick=async()=>{
   }
   closeProfile();
 };
+$("nick").addEventListener("input",()=>{const n=$("nickAvailabilityMsg");if(n){n.textContent="";n.className="msg hidden"}});
 $("saveProfile").onclick=async()=>{
   let old=profile;
   let v=$("nick").value.trim();
   if(!validNick(v))return msg("homeMsg","Pseudo : 2 à 12 caractères, lettres et chiffres uniquement.","bad");
   let nickChanged=!old||v!==old.nick;
-  if(nickChanged && !(await pseudoDisponible(v)))return msg("homeMsg","Ce pseudo est déjà utilisé.","bad");
+  if(nickChanged && !(await pseudoDisponible(v))){
+    const nm=$("nickAvailabilityMsg");
+    nm.textContent="Ce pseudo est déjà utilisé. Choisis-en un autre.";
+    nm.className="msg bad";
+    $("nick").focus();
+    return;
+  }
+  const nm=$("nickAvailabilityMsg");if(nm){nm.textContent="";nm.className="msg hidden"}
   let last=Number(old?.nickChangedAt||old?.updatedAt||0);
   if(old&&nickChanged&&last&&now()-last<NICK_DELAY)return msg("homeMsg",nickWaitText(),"bad");
   try{
