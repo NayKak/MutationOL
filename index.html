@@ -1347,7 +1347,11 @@ function nickWaitText(){
   let days=Math.ceil(left/86400000);
   return`Pseudo modifiable dans ${days} jour${days>1?"s":""} (une modification tous les 30 jours).`;
 }
-async function refreshProfileRanks(){
+async function setSoloPalmaresValue(best){
+  const el=$("soloPalmares");
+  if(el)el.textContent=`${Number(best||0)} mot${Number(best||0)>1?"s":""}`;
+}
+function refreshProfileRanks(){
   const soloEl=$("profileSoloRank"),multiEl=$("profileMultiRank");
   if(multiEl)multiEl.textContent="À venir";
   if(!soloEl)return;
@@ -1372,7 +1376,7 @@ function refreshProfileEditor(){
   let canNick=!existing||!t||now()-t>=NICK_DELAY;
   $("nick").disabled=existing&&!canNick;
   $("nickCooldown").textContent=existing?nickWaitText():"Le pseudo sera ensuite modifiable une fois tous les 30 jours.";
-  $("nickCooldown").classList.toggle("ok",existing&&canNick);let sb=Number(profile?.soloBest||0);$("soloPalmares").textContent=`Palmarès solo : ${sb} mot${sb>1?"s":""}`;$("soloHomeBest").textContent=`Meilleur score : ${sb} mot${sb>1?"s":""}`;
+  $("nickCooldown").classList.toggle("ok",existing&&canNick);let sb=Number(profile?.soloBest||0);$("soloPalmares").textContent=`${Number(profile?.soloBest||0)} mot${Number(profile?.soloBest||0)>1?"s":""}`;$("soloHomeBest").textContent=`Meilleur score : ${sb} mot${sb>1?"s":""}`;
   $("saveProfile").textContent=existing?"Enregistrer les modifications":"Enregistrer mon profil";
   $("existingProfileOptions").classList.toggle("hidden",!existing);
   $("cancelProfileCreation").classList.toggle("hidden",existing);
@@ -1424,7 +1428,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V89", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V90", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
