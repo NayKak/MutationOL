@@ -401,6 +401,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   </div>
   <div id="nickAvailabilityMsg" class="msg hidden" style="margin:2px 0 6px;min-height:0"></div>
   <div id="nickCooldown" class="small center hidden"></div>
+  <div class="small center avatarLabel">Avatar</div>
+  <div id="avatarGallery" class="avatarGallery"></div>
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
 <div id="existingProfileOptions">
     <div class="prefRow">
@@ -416,8 +418,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
       <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon compte <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
     </div>
 </div>
-  <div class="small center avatarLabel">Avatar</div>
-  <div id="avatarGallery" class="avatarGallery"></div>
+
   <button id="saveProfile" type="button">Enregistrer mon profil</button>
   <button id="cancelProfileCreation" type="button" class="secondary hidden">← Retour</button>
   <button id="closeProfileBtn" type="button" class="secondary">← Retour au jeu</button>
@@ -714,7 +715,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V69", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V70", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
