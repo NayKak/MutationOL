@@ -578,6 +578,49 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   vertical-align:baseline!important;
 }
 
+
+/* V79 — profil entièrement harmonisé */
+#profileBox .profileSectionTitle{
+  width:100%!important;
+  margin:20px 0 14px!important;
+  padding:0!important;
+  text-align:center!important;
+  line-height:1.2!important;
+}
+#profileBox .profileNickRow{
+  margin:0!important;
+}
+#profileBox .avatarGallery{
+  margin:0!important;
+  padding:0 0 6px!important;
+}
+#existingProfileOptions{
+  display:grid!important;
+  gap:14px!important;
+}
+#existingProfileOptions.hidden{display:none!important}
+#existingProfileOptions > .profileSectionTitle{
+  margin:20px 0 0!important;
+}
+#existingProfileOptions > .profileSectionTitle + .prefRow,
+#existingProfileOptions > .profileSectionTitle + .dangerProfileActions{
+  margin-top:0!important;
+}
+#existingProfileOptions .prefRow,
+#existingProfileOptions .dangerProfileActions{
+  margin-bottom:0!important;
+}
+#existingProfileOptions .dangerProfileActions{
+  gap:14px!important;
+}
+#profileBox #saveProfile{
+  margin-top:20px!important;
+}
+#profileBox #cancelProfileCreation,
+#profileBox #closeProfileBtn{
+  margin-top:14px!important;
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -617,7 +660,6 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
 </div>
   <div class="profileSectionTitle">──── Pseudo ────</div>
-  <label class="small">Pseudo</label>
   <div class="profileNickRow">
     <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
     <button id="editNickBtn" type="button" class="secondary hidden">Modifier</button>
@@ -955,7 +997,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V78", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V79", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
