@@ -900,6 +900,76 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   #profileBox .profileStats span,#profileBox .profileStats b{font-size:10px!important}
 }
 
+
+/* V87 — entête profil épuré */
+#profileBox #accountType{display:none!important}
+
+/* Un seul cadre, trois lignes, dans l'ordre demandé */
+#profileBox .profileStats{
+  width:100%!important;
+  max-width:230px!important;
+  display:grid!important;
+  grid-template-rows:repeat(3,42px)!important;
+  gap:0!important;
+  overflow:hidden!important;
+  border:1px solid #286678!important;
+  border-radius:16px!important;
+  background:#0a252d!important;
+  box-shadow:none!important;
+}
+#profileBox .profileStats > div{
+  min-height:42px!important;
+  height:42px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:0 12px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-sizing:border-box!important;
+}
+#profileBox .profileStats > div + div{
+  border-top:1px solid #28515d!important;
+}
+#profileBox .profileStats span{
+  color:#9bb4bc!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  white-space:nowrap!important;
+}
+#profileBox .profileStats b{
+  color:#e8fbff!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+#profileBox .profileStats > div:last-child b{color:#62e66d!important}
+
+@media(max-width:480px){
+  #profileBox .profileHead{
+    grid-template-columns:58px minmax(0,1fr) minmax(178px,205px)!important;
+  }
+  #profileBox .profileStats{
+    max-width:205px!important;
+    grid-template-rows:repeat(3,39px)!important;
+  }
+  #profileBox .profileStats > div{
+    min-height:39px!important;height:39px!important;padding:0 9px!important;gap:6px!important;
+  }
+  #profileBox .profileStats span,
+  #profileBox .profileStats b{font-size:10px!important}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -937,9 +1007,9 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div id="profileAvatar" class="avatarMini">01</div>
   <div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div>
   <div class="profileStats">
-  <div><span>Palmarès solo</span><b id="soloPalmares">0 mot</b></div>
+  <div><span>Classement multi</span><b id="profileMultiRank">À venir</b></div>
   <div><span>Classement solo</span><b id="profileSoloRank">—</b></div>
-  <div><span>Classement multijoueur</span><b id="profileMultiRank">À venir</b></div>
+  <div><span>Score solo</span><b id="soloPalmares">0 mot</b></div>
 </div>
 </div>
   <div class="profileSectionTitle">──── Pseudo ────</div>
@@ -1300,7 +1370,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V86", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V87", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
