@@ -1068,6 +1068,50 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   }
 }
 
+
+/* V93 — stats très serrées : libellé et valeur presque collés */
+#profileBox .profileStats{
+  width:auto!important;
+  max-width:none!important;
+  justify-self:end!important;
+  grid-template-rows:repeat(3,25px)!important;
+}
+#profileBox .profileStats > div{
+  min-height:25px!important;
+  height:25px!important;
+  display:flex!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  gap:4px!important;
+  padding:0 8px!important;
+}
+#profileBox .profileStats span{
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+}
+#profileBox .profileStats b{
+  flex:0 0 auto!important;
+  margin:0!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+}
+@media(max-width:480px){
+  #profileBox .profileHead{
+    grid-template-columns:58px minmax(0,1fr) auto!important;
+  }
+  #profileBox .profileStats{
+    width:auto!important;
+    max-width:none!important;
+    grid-template-rows:repeat(3,24px)!important;
+  }
+  #profileBox .profileStats > div{
+    min-height:24px!important;
+    height:24px!important;
+    gap:3px!important;
+    padding:0 7px!important;
+  }
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1105,9 +1149,9 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div id="profileAvatar" class="avatarMini">01</div>
   <div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div>
   <div class="profileStats">
-  <div><span>Classement multi</span><b id="profileMultiRank">À venir</b></div>
-  <div><span>Classement solo</span><b id="profileSoloRank">—</b></div>
-  <div><span>Score solo</span><b id="soloPalmares">0 mot</b></div>
+  <div><span>Classement multi :</span><b id="profileMultiRank">À venir</b></div>
+  <div><span>Classement solo :</span><b id="profileSoloRank">—</b></div>
+  <div><span>Meilleur score :</span><b id="soloPalmares">0 mot</b></div>
 </div>
 </div>
   <div class="profileSectionTitle">──── Pseudo ────</div>
@@ -1472,7 +1516,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V92", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V93", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
