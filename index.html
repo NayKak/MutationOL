@@ -172,6 +172,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 </div>
 
 <script type="module">
+// V27 : les contrôles UI ne sont jamais considérés comme une sécurité ; Firebase Rules reste l’autorité.
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,GoogleAuthProvider,FacebookAuthProvider,signInWithPopup,signOut}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import{getDatabase,ref,get,set,update,remove,onValue,runTransaction,onDisconnect,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
