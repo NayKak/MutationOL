@@ -514,7 +514,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,GoogleAuthProvider,FacebookAuthProvider,signInWithPopup,signOut}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import {getDatabase,ref,get,set,update,remove,onValue,runTransaction,onDisconnect,serverTimestamp,query,orderByChild,limitToLast} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
-console.info("Mutation Online — V56");
+console.info("Mutation Online — V57");
 const firebaseConfig={apiKey:"AIzaSyAbPp2anmsI_iuJiZJ74uRt_igmFLA3PIU",authDomain:"mutation-216a2.firebaseapp.com",databaseURL:"https://mutation-216a2-default-rtdb.europe-west1.firebasedatabase.app/",projectId:"mutation-216a2",storageBucket:"mutation-216a2.firebasestorage.app",messagingSenderId:"742495380577",appId:"1:742495380577:web:c42e6d3101d5f09ba93620"};
 const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvafVO83vnE0VivCZTeIoKHOMKBYcTK9a1FfIetJ3FlMprb5NoUUUxOrrKZzt4vNzIBFmNXhDsHzM0/pub?output=csv";
 const TTL=86400000,CLOSED=600000,GRACE=90000;
@@ -949,13 +949,15 @@ $("closeResetSolo").onclick=$("cancelResetSolo").onclick=()=>closeSimpleModal("r
 $("confirmResetSolo").onclick=async()=>{
   const b=$("confirmResetSolo");b.disabled=true;
   try{
-    await update(ref(db,"profiles/"+uid),{soloBest:0});
     await remove(ref(db,"soloLeaderboard/"+uid));
+    await update(ref(db,"profiles/"+uid),{soloBest:0});
     profile={...profile,soloBest:0};
     refreshProfileEditor();closeSimpleModal("resetSoloModal");
-    msg("profileMsg","Meilleur score solo remis à 0.","ok");
-  }catch(e){console.error("Reset solo:",e);msg("profileMsg","Impossible de remettre le score à zéro.","bad")}
-  finally{b.disabled=false}
+    alert("Meilleur score solo remis à 0.");
+  }catch(e){
+    console.error("Reset solo:",e);
+    alert("Impossible de remettre le score à zéro"+(e?.code?" ("+String(e.code).toUpperCase()+")":"")+".");
+  }finally{b.disabled=false}
 };
 
 $("deleteProfileHelp").onclick=e=>{e.stopPropagation();alert("Supprime définitivement ton profil Mutation et les données de jeu associées à ce compte.")};
@@ -973,7 +975,7 @@ $("confirmDeleteProfile").onclick=async()=>{
     await signOut(auth);
   }catch(e){
     console.error("Suppression profil:",e);
-    msg("profileMsg","Impossible de supprimer toutes les données. Réessaie.","bad");
+    alert("Impossible de supprimer toutes les données. Réessaie.");
     b.disabled=false;
   }
 };
