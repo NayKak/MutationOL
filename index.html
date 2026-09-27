@@ -443,6 +443,69 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   #profileBox #soloPalmares{font-size:11px!important;padding:6px 7px!important}
 }
 
+
+/* V73 — toutes les fenêtres d'aide "?" parfaitement centrées, desktop + mobile */
+#clearErrorHelpModal,
+#anonymousHelpModal,
+#resetSoloModal,
+#deleteProfileModal{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-height:100vh!important;
+  padding:16px!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  align-items:center!important;
+  justify-content:center!important;
+  place-items:center!important;
+  overflow:auto!important;
+}
+#clearErrorHelpModal:not(.hidden),
+#anonymousHelpModal:not(.hidden),
+#resetSoloModal:not(.hidden),
+#deleteProfileModal:not(.hidden){
+  display:flex!important;
+}
+#clearErrorHelpModal.hidden,
+#anonymousHelpModal.hidden,
+#resetSoloModal.hidden,
+#deleteProfileModal.hidden{
+  display:none!important;
+}
+#clearErrorHelpModal .modalCard,
+#anonymousHelpModal .modalCard,
+#resetSoloModal .modalCard,
+#deleteProfileModal .modalCard{
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  width:min(430px,calc(100vw - 32px))!important;
+  max-width:430px!important;
+  max-height:calc(100dvh - 32px)!important;
+  margin:auto!important;
+  box-sizing:border-box!important;
+  overflow:auto!important;
+}
+@media(max-width:480px){
+  #clearErrorHelpModal,
+  #anonymousHelpModal,
+  #resetSoloModal,
+  #deleteProfileModal{
+    padding:12px!important;
+  }
+  #clearErrorHelpModal .modalCard,
+  #anonymousHelpModal .modalCard,
+  #resetSoloModal .modalCard,
+  #deleteProfileModal .modalCard{
+    width:calc(100vw - 24px)!important;
+    max-width:390px!important;
+    max-height:calc(100dvh - 24px)!important;
+    margin:auto!important;
+  }
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -803,7 +866,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V72", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V73", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
