@@ -279,6 +279,67 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 #anonymousHelpModal .modalCard,#resetSoloModal .modalCard,#deleteProfileModal .modalCard{max-width:450px}
 #anonymousHelpModal p,#resetSoloModal p,#deleteProfileModal p{color:#c7dce2;line-height:1.5}
 #deleteProfileModal strong,#resetSoloModal strong{color:#ff8799}
+
+/* V64 — fenêtres d'aide du profil plus compactes sur mobile */
+#clearErrorHelpModal .modalCard,
+#anonymousHelpModal .modalCard,
+#resetSoloModal .modalCard,
+#deleteProfileModal .modalCard{
+  width:min(390px,calc(100vw - 36px))!important;
+  max-height:min(72vh,560px)!important;
+  padding:18px 18px 16px!important;
+  border-radius:17px!important;
+}
+#clearErrorHelpModal .modalClose,
+#anonymousHelpModal .modalClose,
+#resetSoloModal .modalClose,
+#deleteProfileModal .modalClose{
+  width:34px!important;
+  height:34px!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:34px!important;
+  font-size:21px!important;
+}
+#clearErrorHelpModal h2,
+#anonymousHelpModal h2,
+#resetSoloModal h2,
+#deleteProfileModal h2{
+  font-size:20px!important;
+  line-height:1.2!important;
+  margin:2px 38px 10px 0!important;
+}
+#clearErrorHelpModal p,
+#anonymousHelpModal p,
+#resetSoloModal p,
+#deleteProfileModal p{
+  font-size:15px!important;
+  line-height:1.4!important;
+  margin:8px 0 12px!important;
+}
+#clearErrorHelpModal button:not(.modalClose),
+#anonymousHelpModal button:not(.modalClose),
+#resetSoloModal button:not(.modalClose),
+#deleteProfileModal button:not(.modalClose){
+  padding:11px 12px!important;
+  font-size:15px!important;
+  margin-top:7px!important;
+}
+@media(max-width:480px){
+  #clearErrorHelpModal.modal,
+  #anonymousHelpModal.modal,
+  #resetSoloModal.modal,
+  #deleteProfileModal.modal{padding:12px!important}
+  #clearErrorHelpModal .modalCard,
+  #anonymousHelpModal .modalCard,
+  #resetSoloModal .modalCard,
+  #deleteProfileModal .modalCard{
+    width:min(350px,calc(100vw - 24px))!important;
+    max-height:68vh!important;
+    padding:16px!important;
+  }
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -522,6 +583,11 @@ const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),$=
 let uid=null,room=null,roomCode=null,WORDS=new Set(),WORD_FORM=new Map(),SHORT=[],dictReady=false,unsub=null,tick=null,lastTimeout="",disc=null,lastPrunedFor="",leaving=false,presenceTask=Promise.resolve(),profile=null,selectedAvatar="avatar01",solo=null,soloTick=null;
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nickKey=v=>String(v??"").trim().toLowerCase();
+async function pseudoDisponible(v){
+  const k=nickKey(v), snap=await get(ref(db,"nicknames/"+k));
+  return !snap.exists() || snap.val()===uid;
+}
 const now=()=>Date.now(),other=s=>s==="p1"?"p2":"p1",nick=()=>profile?.nick||$("nick").value.trim().slice(0,12);
 const SESSION_KEY="mutation_active_room",NICK_KEY="mutation_nick";
 function saveSession(c){try{localStorage.setItem(SESSION_KEY,c);if(nick())localStorage.setItem(NICK_KEY,nick())}catch{}}
@@ -593,7 +659,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V63", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V65", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -651,6 +717,7 @@ $("saveProfile").onclick=async()=>{
   let v=$("nick").value.trim();
   if(!validNick(v))return msg("homeMsg","Pseudo : 2 à 12 caractères, lettres et chiffres uniquement.","bad");
   let nickChanged=!old||v!==old.nick;
+  if(nickChanged && !(await pseudoDisponible(v)))return msg("homeMsg","Ce pseudo est déjà utilisé.","bad");
   let last=Number(old?.nickChangedAt||old?.updatedAt||0);
   if(old&&nickChanged&&last&&now()-last<NICK_DELAY)return msg("homeMsg",nickWaitText(),"bad");
   try{
@@ -663,7 +730,15 @@ $("saveProfile").onclick=async()=>{
       clearOnError:$("clearOnError").checked,
       anonymousRanking:$("anonymousRanking").checked
     };
-    await set(ref(db,"profiles/"+uid),p);
+    const newNickKey=nickKey(p.nick),oldNickKey=old?.nick?nickKey(old.nick):null;
+    await set(ref(db,"nicknames/"+newNickKey),uid);
+    try{
+      await set(ref(db,"profiles/"+uid),p);
+    }catch(e){
+      if(!oldNickKey || oldNickKey!==newNickKey)try{await remove(ref(db,"nicknames/"+newNickKey))}catch{}
+      throw e;
+    }
+    if(oldNickKey && oldNickKey!==newNickKey)try{await remove(ref(db,"nicknames/"+oldNickKey))}catch{}
     if(!auth.currentUser?.isAnonymous){
       if(p.anonymousRanking){
         await remove(ref(db,"soloLeaderboard/"+uid));
