@@ -970,6 +970,30 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   #profileBox .profileStats b{font-size:10px!important}
 }
 
+
+/* V88 — suppression définitive de l'ancienne capsule verte Palmarès solo */
+#profileBox #soloPalmares{
+  position:static!important;
+  display:block!important;
+  width:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#62e66d!important;
+  text-align:right!important;
+  font-size:11px!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+@media(max-width:480px){
+  #profileBox #soloPalmares{font-size:10px!important;padding:0!important}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1370,7 +1394,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V87", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V88", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
