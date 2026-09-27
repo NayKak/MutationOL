@@ -251,6 +251,10 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   font-size:clamp(14px,4vw,17px)!important;
   white-space:nowrap!important;
 }
+
+/* V49 — validation finale du score solo */
+#soloFinishBtn{margin-top:12px}
+#soloEnd .msg{line-height:1.45}
 </style>
 </head>
 <body><div class="app">
@@ -351,7 +355,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 
 <section id="solo" class="card hidden">
   <div class="soloHead">
-    <div><b>Entraînement solo</b><div id="soloLives" class="soloLives">❤️❤️❤️</div></div>
+    <div><b>Entraînement solo</b><div id="soloLives" class="soloLives">❤️</div></div>
     <div class="soloScore">Score <b id="soloScore">0</b></div>
   </div>
   <div id="soloChoice">
@@ -371,7 +375,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
     <div class="soloFinal">Partie terminée</div>
     <div class="soloFinalScore"><b id="soloFinalScore">0</b> mots réussis</div>
     <div id="soloBestMsg" class="msg"></div>
-    <button id="soloReplay" type="button">Rejouer en solo</button>
+    <button id="soloFinishBtn" type="button">Terminer la partie</button>
   </div>
   <button id="soloQuit" type="button" class="leaveButton">Quitter</button>
 </section>
@@ -725,12 +729,13 @@ function soloUsed(){return new Set((solo?.history||[]).map(key))}
 function soloTimerInfo(){let n=Math.max(0,solo?.score||0),steps=Math.min(9,Math.floor(n/10)),malus=steps*5,limit=Math.max(15,60-malus),toNext=limit>15?10-(n%10):0;return{malus,limit,toNext,progress:limit>15?(n%10)*10:100}}
 function fitWord(el,word){el.textContent=(word||"").toUpperCase();el.classList.toggle("wordLong",(word||"").length>=8);el.classList.toggle("wordVeryLong",(word||"").length>=10)}
 function soloStartChoices(){
+  $("soloQuit").classList.remove("hidden");
   if(!dictReady)return msg("homeMsg","Dictionnaire non chargé.","bad");
   let a=starts();if(a.length<3)return msg("homeMsg","Impossible de préparer les mots de départ.","bad");
-  solo={lives:3,score:0,current:"",history:[],choices:a,startedAt:0};
+  solo={lives:1,score:0,current:"",history:[],choices:a,startedAt:0};
   clearInterval(soloTick);
   $("soloEnd").classList.add("hidden");$("soloPlay").classList.add("hidden");$("soloChoice").classList.remove("hidden");
-  $("soloLives").textContent="❤️❤️❤️";$("soloScore").textContent="0";$("soloMsg").textContent="";
+  $("soloLives").textContent="❤️";$("soloScore").textContent="0";$("soloMsg").textContent="";
   $("soloChoices").innerHTML=a.map(w=>`<button type="button" class="soloChoice" data-w="${w}">${w.toUpperCase()}</button>`).join("");
   document.querySelectorAll(".soloChoice").forEach(b=>b.onclick=()=>soloBegin(b.dataset.w));
   screen("solo");
@@ -767,25 +772,79 @@ function soloLoseLife(){
   document.querySelectorAll(".soloChoice").forEach(b=>b.onclick=()=>soloBegin(b.dataset.w));
 }
 async function soloFinish(){
-  clearInterval(soloTick);$("soloPlay").classList.add("hidden");$("soloChoice").classList.add("hidden");$("soloEnd").classList.remove("hidden");
+  clearInterval(soloTick);
+  $("soloPlay").classList.add("hidden");
+  $("soloChoice").classList.add("hidden");
+  $("soloEnd").classList.remove("hidden");
+  $("soloQuit").classList.add("hidden");
   $("soloFinalScore").textContent=solo.score;
-  let best=Number(profile?.soloBest||0),isBest=solo.score>best;
-  if(isBest&&uid){
-    try{
-      await update(ref(db,"profiles/"+uid),{soloBest:solo.score});
-      profile={...profile,soloBest:solo.score};
-      if(registeredProfile())await set(ref(db,"soloLeaderboard/"+uid),{nick:profile.nick,score:solo.score,updatedAt:serverTimestamp()});
-      $("soloBestMsg").textContent=`Nouveau record : ${solo.score} mots !`;
-      $("soloBestMsg").className="msg ok";
-    }catch(e){console.error("Record solo:",e);$("soloBestMsg").textContent="Score terminé, mais le record n’a pas pu être enregistré."; $("soloBestMsg").className="msg bad"}
-  }else{
-    $("soloBestMsg").textContent=`Meilleur score : ${best} mot${best>1?"s":""}.`;
-    $("soloBestMsg").className="msg";
-  }
-  refreshProfileEditor();
+  $("soloBestMsg").textContent="Clique sur « Terminer la partie » pour valider ton score.";
+  $("soloBestMsg").className="msg";
+  $("soloFinishBtn").disabled=false;
+  $("soloFinishBtn").textContent="Terminer la partie";
 }
-$("soloBtn").onclick=soloStartChoices;
-$("soloReplay").onclick=soloStartChoices;
+async function soloRankPosition(){
+  const snap=await get(ref(db,"soloLeaderboard"));
+  let rows=[];
+  snap.forEach(c=>{
+    const v=c.val()||{};
+    if(typeof v.nick==="string"&&Number(v.score)>0)rows.push({uid:c.key,score:Number(v.score),nick:v.nick});
+  });
+  rows.sort((a,b)=>b.score-a.score||a.nick.localeCompare(b.nick,"fr",{sensitivity:"base"}));
+  const i=rows.findIndex(r=>r.uid===uid);
+  return i<0?null:i+1;
+}
+function ordinalFr(n){
+  if(n===1)return "1er";
+  return n+"e";
+}
+async function validateSoloFinish(){
+  if(!solo)return;
+  const btn=$("soloFinishBtn"),score=Number(solo.score||0);
+  btn.disabled=true;btn.textContent="Validation…";
+  try{
+    let oldBest=Number(profile?.soloBest||0);
+    let best=Math.max(oldBest,score);
+
+    if(score>oldBest&&uid){
+      await update(ref(db,"profiles/"+uid),{soloBest:score});
+      profile={...profile,soloBest:score};
+    }
+
+    if(registeredProfile()&&best>0){
+      await set(ref(db,"soloLeaderboard/"+uid),{
+        nick:profile.nick,
+        score:best,
+        updatedAt:serverTimestamp()
+      });
+      const pos=await soloRankPosition();
+      $("soloBestMsg").textContent=pos
+        ? `Vous avez trouvé ${score} mot${score>1?"s":""}, vous êtes désormais ${ordinalFr(pos)} au classement.`
+        : `Vous avez trouvé ${score} mot${score>1?"s":""}.`;
+      $("soloBestMsg").className="msg ok";
+    }else{
+      $("soloBestMsg").textContent=`Vous avez trouvé ${score} mot${score>1?"s":""}. Seuls les joueurs enregistrés apparaissent dans le classement solo.`;
+      $("soloBestMsg").className="msg ok";
+    }
+
+    refreshProfileEditor();
+    btn.textContent="Retour à l’accueil";
+    btn.disabled=false;
+    btn.onclick=()=>{
+      solo=null;
+      $("soloEnd").classList.add("hidden");
+      $("soloQuit").classList.remove("hidden");
+      screen("home");showPlayMenu();
+    };
+  }catch(e){
+    console.error("Validation score solo:",e);
+    $("soloBestMsg").textContent="Impossible de valider le score. Réessaie.";
+    $("soloBestMsg").className="msg bad";
+    btn.disabled=false;btn.textContent="Terminer la partie";
+  }
+}
+$("soloBtn").onclick=()=>{$("soloQuit").classList.remove("hidden");$("soloFinishBtn").onclick=validateSoloFinish;soloStartChoices()};
+$("soloFinishBtn").onclick=validateSoloFinish;
 $("soloQuit").onclick=()=>{$("soloQuitModal").classList.remove("hidden")};
 $("cancelSoloQuit").onclick=$("closeSoloQuit").onclick=()=>{$("soloQuitModal").classList.add("hidden")};
 $("confirmSoloQuit").onclick=()=>{
