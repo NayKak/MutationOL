@@ -521,6 +521,7 @@ const TTL=86400000,CLOSED=600000,GRACE=90000;
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),$=id=>document.getElementById(id),norm=s=>s.trim().toLowerCase().normalize("NFC"),key=s=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/œ/g,"oe").replace(/æ/g,"ae");
 let uid=null,room=null,roomCode=null,WORDS=new Set(),WORD_FORM=new Map(),SHORT=[],dictReady=false,unsub=null,tick=null,lastTimeout="",disc=null,lastPrunedFor="",leaving=false,presenceTask=Promise.resolve(),profile=null,selectedAvatar="avatar01",solo=null,soloTick=null;
 
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const now=()=>Date.now(),other=s=>s==="p1"?"p2":"p1",nick=()=>profile?.nick||$("nick").value.trim().slice(0,12);
 const SESSION_KEY="mutation_active_room",NICK_KEY="mutation_nick";
 function saveSession(c){try{localStorage.setItem(SESSION_KEY,c);if(nick())localStorage.setItem(NICK_KEY,nick())}catch{}}
@@ -592,7 +593,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V62", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V63", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
