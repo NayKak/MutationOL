@@ -547,6 +547,23 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   vertical-align:baseline!important;
 }
 
+
+/* V77 — sections du profil comme l'accueil */
+.profileSectionTitle{
+  width:100%;
+  margin:18px 0 12px;
+  text-align:center;
+  color:#8da6ad;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.3px;
+  white-space:nowrap;
+}
+#profileBox .profileSectionTitle:first-of-type{margin-top:16px}
+#profileBox .profileSectionTitle + label.small{margin-top:0}
+#profileBox .profileSectionTitle + .avatarGallery{margin-top:0!important}
+#existingProfileOptions > .profileSectionTitle{margin:18px 0 12px}
+
 </style>
 </head>
 <body><div class="app">
@@ -585,6 +602,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div>
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
 </div>
+  <div class="profileSectionTitle">──── Pseudo ────</div>
   <label class="small">Pseudo</label>
   <div class="profileNickRow">
     <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
@@ -593,10 +611,11 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   </div>
   <div id="nickAvailabilityMsg" class="msg hidden" style="margin:2px 0 6px;min-height:0"></div>
   <div id="nickCooldown" class="small center hidden"></div>
-  <div class="small center avatarLabel">Avatar</div>
+  <div class="profileSectionTitle">──── Avatar ────</div>
   <div id="avatarGallery" class="avatarGallery"></div>
   
 <div id="existingProfileOptions">
+  <div class="profileSectionTitle">──── Préférences ────</div>
     <div class="prefRow">
       <div class="prefText"><b>Effacer le texte en cas d’erreur</b><button id="clearErrorHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
       <label class="switchWrap"><span id="clearErrorLabel">Non</span><input id="clearOnError" type="checkbox"><span class="switchSlider"></span></label>
@@ -605,6 +624,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
       <div class="prefText"><b>Anonyme</b><button id="anonymousHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
       <label class="switchWrap"><span id="anonymousLabel">Non</span><input id="anonymousRanking" type="checkbox"><span class="switchSlider"></span></label>
     </div>
+    <div class="profileSectionTitle">──── Données ────</div>
     <div class="dangerProfileActions">
       <button id="resetSoloBest" type="button" class="dangerOption">Supprimer score solo <span class="inlineHelp" id="resetSoloHelp">?</span></button>
       <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon compte <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
@@ -921,7 +941,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V76", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V77", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -1360,7 +1380,7 @@ function showValidCheck(id){
 }
 $("clearOnError").onchange=()=>{$("clearErrorLabel").textContent=$("clearOnError").checked?"Oui":"Non"};
 $("clearErrorHelp").onclick=()=>$("clearErrorHelpModal").classList.remove("hidden");
-$("closeClearErrorHelp").onclick=$("okClearErrorHelp").onclick=()=>$("clearErrorHelpModal").classList.add("hidden");
+
 $("clearErrorHelpModal").onclick=e=>{if(e.target===$("clearErrorHelpModal"))$("clearErrorHelpModal").classList.add("hidden")};
 
 $("soloForm").onsubmit=e=>{
