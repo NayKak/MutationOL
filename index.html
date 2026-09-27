@@ -378,22 +378,25 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
   <div id="nickAvailabilityMsg" class="msg hidden" style="margin:2px 0 6px;min-height:0"></div>
   <div id="nickCooldown" class="small center"></div>
+  <div id="existingProfileOptions">
   <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
-  <div class="prefRow">
-    <div class="prefText"><b>Effacer le texte en cas d’erreur</b><button id="clearErrorHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
-    <label class="switchWrap"><span id="clearErrorLabel">Non</span><input id="clearOnError" type="checkbox"><span class="switchSlider"></span></label>
-  </div>
-  <div class="prefRow">
-    <div class="prefText"><b>Anonyme</b><button id="anonymousHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
-    <label class="switchWrap"><span id="anonymousLabel">Non</span><input id="anonymousRanking" type="checkbox"><span class="switchSlider"></span></label>
-  </div>
-  <div class="dangerProfileActions">
-    <button id="resetSoloBest" type="button" class="dangerOption">Supprimer meilleur score solo <span class="inlineHelp" id="resetSoloHelp">?</span></button>
-    <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon profil et toutes mes données <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
-  </div>
+    <div class="prefRow">
+      <div class="prefText"><b>Effacer le texte en cas d’erreur</b><button id="clearErrorHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
+      <label class="switchWrap"><span id="clearErrorLabel">Non</span><input id="clearOnError" type="checkbox"><span class="switchSlider"></span></label>
+    </div>
+    <div class="prefRow">
+      <div class="prefText"><b>Anonyme</b><button id="anonymousHelp" type="button" class="helpBtn" aria-label="Explication">?</button></div>
+      <label class="switchWrap"><span id="anonymousLabel">Non</span><input id="anonymousRanking" type="checkbox"><span class="switchSlider"></span></label>
+    </div>
+    <div class="dangerProfileActions">
+      <button id="resetSoloBest" type="button" class="dangerOption">Supprimer meilleur score solo <span class="inlineHelp" id="resetSoloHelp">?</span></button>
+      <button id="deleteProfileData" type="button" class="dangerOption dangerStrong">Supprimer mon profil et toutes mes données <span class="inlineHelp" id="deleteProfileHelp">?</span></button>
+    </div>
+</div>
   <div class="small center avatarLabel">Avatar — modifiable à tout moment</div>
   <div id="avatarGallery" class="avatarGallery"></div>
   <button id="saveProfile" type="button">Enregistrer mon profil</button>
+  <button id="cancelProfileCreation" type="button" class="secondary hidden">← Retour</button>
   <button id="closeProfileBtn" type="button" class="secondary">← Retour au jeu</button>
 </div>
 <div id="playActions" class="hidden">
@@ -639,6 +642,9 @@ function refreshProfileEditor(){
   $("nickCooldown").textContent=existing?nickWaitText():"Le pseudo sera ensuite modifiable une fois tous les 30 jours.";
   $("nickCooldown").classList.toggle("ok",existing&&canNick);let sb=Number(profile?.soloBest||0);$("soloPalmares").textContent=`Palmarès solo : ${sb} mot${sb>1?"s":""}`;$("soloHomeBest").textContent=`Meilleur score : ${sb} mot${sb>1?"s":""}`;
   $("saveProfile").textContent=existing?"Enregistrer les modifications":"Enregistrer mon profil";
+  $("existingProfileOptions").classList.toggle("hidden",!existing);
+  $("cancelProfileCreation").classList.toggle("hidden",existing);
+  $("closeProfileBtn").classList.toggle("hidden",!existing);
 }
 function openProfile(){
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -660,7 +666,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V66", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V67", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -701,6 +707,15 @@ const twitchProvider=new OAuthProvider("oidc.twitch");
 $("twitchLogin").onclick=()=>loginProvider(twitchProvider);
 
 $("guestLogin").onclick=async()=>{try{await signInAnonymously(auth)}catch(e){msg("homeMsg","Connexion invité impossible.","bad")}};
+$("cancelProfileCreation").onclick=async()=>{
+  try{await signOut(auth)}catch(e){}
+  profile=null;uid=null;
+  $("profileBox").classList.add("hidden");
+  $("playActions").classList.add("hidden");
+  $("authBox").classList.remove("hidden");
+  const n=$("nickAvailabilityMsg");if(n){n.textContent="";n.className="msg hidden"}
+  msg("homeMsg","");
+};
 $("closeProfileBtn").onclick=async()=>{
   if(auth.currentUser?.isAnonymous && !profile){
     try{await signOut(auth)}catch(e){}
