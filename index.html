@@ -359,6 +359,66 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   .profileHead{padding-right:118px}
 }
 
+
+/* V71 — profil : rythme régulier + popups centrés comme les règles */
+#profileBox > label.small{display:block;margin-top:14px;margin-bottom:4px}
+#profileBox .profileNickRow{margin-bottom:14px}
+#profileBox .avatarLabel{margin:14px 0 6px!important}
+#profileBox .avatarGallery{margin:0 0 14px!important;padding-bottom:10px!important}
+#existingProfileOptions{display:grid;gap:12px}
+#existingProfileOptions.hidden{display:none!important}
+#existingProfileOptions .prefRow{margin:0!important}
+#existingProfileOptions .dangerProfileActions{
+  display:grid!important;gap:12px!important;margin:0!important
+}
+#profileBox #saveProfile,
+#profileBox #cancelProfileCreation,
+#profileBox #closeProfileBtn{margin-top:12px!important}
+#existingProfileOptions + .small.avatarLabel{margin-top:14px!important}
+
+/* Les aides/confirmations du profil reprennent le centrage du popup Règles. */
+#clearErrorHelpModal,
+#anonymousHelpModal,
+#resetSoloModal,
+#deleteProfileModal{
+  display:grid!important;
+  place-items:center!important;
+  padding:18px!important;
+}
+#clearErrorHelpModal.hidden,
+#anonymousHelpModal.hidden,
+#resetSoloModal.hidden,
+#deleteProfileModal.hidden{display:none!important}
+#clearErrorHelpModal .modalCard,
+#anonymousHelpModal .modalCard,
+#resetSoloModal .modalCard,
+#deleteProfileModal .modalCard{
+  width:min(430px,100%)!important;
+  max-height:85vh!important;
+  margin:auto!important;
+  padding:22px!important;
+}
+#clearErrorHelpModal h2,
+#anonymousHelpModal h2,
+#resetSoloModal h2,
+#deleteProfileModal h2{
+  margin:0 38px 14px 0!important;
+}
+@media(max-width:480px){
+  #clearErrorHelpModal,
+  #anonymousHelpModal,
+  #resetSoloModal,
+  #deleteProfileModal{padding:18px!important}
+  #clearErrorHelpModal .modalCard,
+  #anonymousHelpModal .modalCard,
+  #resetSoloModal .modalCard,
+  #deleteProfileModal .modalCard{
+    width:min(430px,100%)!important;
+    max-height:85vh!important;
+    padding:20px!important;
+  }
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -715,7 +775,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V70", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V71", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
