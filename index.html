@@ -142,6 +142,39 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   background:#3b151d!important;
   color:#ff7189!important;
 }
+
+/* V39 — mots longs + séparateurs homogènes */
+#word{
+  max-width:100%;
+  box-sizing:border-box;
+  white-space:nowrap;
+  overflow:visible;
+  line-height:1.05;
+  font-size:clamp(30px,10vw,58px);
+}
+#word.wordLong{font-size:clamp(27px,8.2vw,48px)!important;letter-spacing:.01em}
+#word.wordVeryLong{font-size:clamp(23px,6.8vw,40px)!important;letter-spacing:0}
+#playMenu>.modeDivider:first-child{margin-top:7px}
+@media(max-width:420px){
+  #word.wordLong{font-size:clamp(25px,7.8vw,39px)!important}
+  #word.wordVeryLong{font-size:clamp(21px,6.2vw,33px)!important}
+}
+
+/* V40 — mode solo */
+.soloModeCard{background:#183f31!important;color:#f6fff8!important;border-color:#3fa86d!important}
+.soloModeCard b{color:#fff!important}.soloModeCard span{color:#bde8cb!important}
+.soloHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:10px 12px;background:#0a2631;border:1px solid #1c5362;border-radius:15px}
+.soloLives{margin-top:4px;letter-spacing:2px}.soloScore{text-align:right;color:#a9cad3}.soloScore b{display:block;color:#fff;font-size:24px}
+.soloChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.soloChoices button{margin:0;padding:13px 6px}
+.soloFinal{text-align:center;font-size:18px;font-weight:900;margin-top:18px}.soloFinalScore{text-align:center;font-size:18px;margin:8px 0 14px}.soloFinalScore b{font-size:42px;color:#63ef55}
+.soloPalmares{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:#0a2631;border:1px solid #1c5362;text-align:center;font-weight:850;color:#63ef55}
+#current.wordLong,#soloCurrent.wordLong{font-size:clamp(27px,8.2vw,48px)!important;letter-spacing:.01em;white-space:nowrap;word-break:normal}
+#current.wordVeryLong,#soloCurrent.wordVeryLong{font-size:clamp(22px,6.6vw,38px)!important;letter-spacing:0;white-space:nowrap;word-break:normal}
+@media(max-width:420px){
+ #current.wordLong,#soloCurrent.wordLong{font-size:clamp(24px,7.5vw,38px)!important}
+ #current.wordVeryLong,#soloCurrent.wordVeryLong{font-size:clamp(20px,6vw,31px)!important}
+ .soloChoices{gap:6px}.soloChoices button{font-size:14px}
+}
 </style>
 </head>
 <body><div class="app">
@@ -179,6 +212,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <label class="small">Pseudo</label>
   <input id="nick" maxlength="12" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pseudo (2 à 12 lettres/chiffres)">
   <div id="nickCooldown" class="small center"></div>
+  <div id="soloPalmares" class="soloPalmares">Palmarès solo : 0 mot</div>
   <div class="small center avatarLabel">Avatar — modifiable à tout moment</div>
   <div id="avatarGallery" class="avatarGallery"></div>
   <button id="saveProfile" type="button">Enregistrer mon profil</button>
@@ -195,14 +229,18 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <button id="rulesBtn" type="button" class="tabBtn">Règles</button>
 </nav>
 <div id="playMenu">
+  <div class="modeDivider"><span>Partie classée</span></div>
   <div class="modeSection">
-    <div class="modeSectionTitle">Partie classée</div>
     <button id="rankedBtn" type="button" class="modeCard"><b>Partie classée</b><span>Adversaire aléatoire</span><em>À venir</em></button>
   </div>
-  <div class="modeDivider"><span>Parties privées</span></div>
+  <div class="modeDivider"><span>Partie privée</span></div>
   <div class="modeSection privateModes">
     <button id="showCreate" type="button" class="modeCard"><b>Créer une partie privée</b><span>Créer un code de salle à partager</span></button>
     <button id="showJoin" type="button" class="modeCard secondary"><b>Rejoindre une partie privée</b><span>Entrer un code de salle</span></button>
+  </div>
+  <div class="modeDivider"><span>Partie solo</span></div>
+  <div class="modeSection">
+    <button id="soloBtn" type="button" class="modeCard soloModeCard"><b>Jouer en solo</b><span>Entraînement • 3 vies • meilleur score enregistré</span></button>
   </div>
 </div>
 <div id="createBox" class="hidden">
@@ -216,6 +254,34 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 </div>
 <div id="homeMsg" class="msg"></div>
 </div>
+</section>
+
+
+<section id="solo" class="card hidden">
+  <div class="soloHead">
+    <div><b>Entraînement solo</b><div id="soloLives" class="soloLives">❤️❤️❤️</div></div>
+    <div class="soloScore">Score <b id="soloScore">0</b></div>
+  </div>
+  <div id="soloChoice">
+    <p class="center"><b>Choisis ton mot de départ</b></p>
+    <div id="soloChoices" class="soloChoices"></div>
+  </div>
+  <div id="soloPlay" class="hidden">
+    <div class="timerRow"><div id="soloTimer" class="timer">60</div><div id="soloMalus" class="malus"></div></div>
+    <div id="soloGaugeText" class="center small"></div>
+    <div class="gauge"><div id="soloGaugeFill" class="gaugeFill"></div></div>
+    <div id="soloCurrent" class="word">CHAT</div>
+    <form id="soloForm"><input id="soloAnswer" maxlength="28" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Nouveau mot"><button>VALIDER</button></form>
+    <div id="soloMsg" class="msg"></div>
+    <div id="soloHistory" class="history"></div>
+  </div>
+  <div id="soloEnd" class="hidden">
+    <div class="soloFinal">Partie terminée</div>
+    <div class="soloFinalScore"><b id="soloFinalScore">0</b> mots réussis</div>
+    <div id="soloBestMsg" class="msg"></div>
+    <button id="soloReplay" type="button">Rejouer en solo</button>
+  </div>
+  <button id="soloQuit" type="button" class="leaveButton">Retour</button>
 </section>
 
 <section id="lobby" class="card hidden">
@@ -244,14 +310,14 @@ const firebaseConfig={apiKey:"AIzaSyAbPp2anmsI_iuJiZJ74uRt_igmFLA3PIU",authDomai
 const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvafVO83vnE0VivCZTeIoKHOMKBYcTK9a1FfIetJ3FlMprb5NoUUUxOrrKZzt4vNzIBFmNXhDsHzM0/pub?output=csv";
 const TTL=86400000,CLOSED=600000,GRACE=90000;
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),$=id=>document.getElementById(id),norm=s=>s.trim().toLowerCase().normalize("NFC"),key=s=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/œ/g,"oe").replace(/æ/g,"ae");
-let uid=null,room=null,roomCode=null,WORDS=new Set(),WORD_FORM=new Map(),SHORT=[],dictReady=false,unsub=null,tick=null,lastTimeout="",disc=null,lastPrunedFor="",leaving=false,presenceTask=Promise.resolve(),profile=null,selectedAvatar="avatar01";
+let uid=null,room=null,roomCode=null,WORDS=new Set(),WORD_FORM=new Map(),SHORT=[],dictReady=false,unsub=null,tick=null,lastTimeout="",disc=null,lastPrunedFor="",leaving=false,presenceTask=Promise.resolve(),profile=null,selectedAvatar="avatar01",solo=null,soloTick=null;
 
 const now=()=>Date.now(),other=s=>s==="p1"?"p2":"p1",nick=()=>profile?.nick||$("nick").value.trim().slice(0,12);
 const SESSION_KEY="mutation_active_room",NICK_KEY="mutation_nick";
 function saveSession(c){try{localStorage.setItem(SESSION_KEY,c);if(nick())localStorage.setItem(NICK_KEY,nick())}catch{}}
 function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch{}}
 async function restoreSession(){let c;try{c=localStorage.getItem(SESSION_KEY);let n=localStorage.getItem(NICK_KEY);if(n&&!$("nick").value)$("nick").value=n}catch{}if(!c||!uid)return;try{let s=await get(ref(db,"rooms/"+c));if(!s.exists()){clearSession();return}let d=s.val();if(d.lastActivity&&now()-d.lastActivity>=INACTIVE){try{await remove(ref(db,"rooms/"+c))}catch{}clearSession();return}let me=d.players?.p1?.uid===uid?"p1":d.players?.p2?.uid===uid?"p2":null;if(!me){clearSession();return}room=d;roomCode=c;await update(ref(db,`rooms/${c}/players/${me}`),{online:true,lastSeen:now()});subscribe(c)}catch{}}
-function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}function screen(id){["home","lobby","game"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}function screen(id){["home","lobby","game","solo"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
 function slot(d=room){return d?.players?.p1?.uid===uid?"p1":d?.players?.p2?.uid===uid?"p2":null}
 function code(){let a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";return Array.from({length:5},()=>a[Math.random()*a.length|0]).join("")}
 function starts(){if(SHORT.length<3)return [];let a=[...SHORT],o=[];while(o.length<3){let i=Math.random()*a.length|0;o.push(a.splice(i,1)[0])}return o}
@@ -294,7 +360,7 @@ function refreshProfileEditor(){
   let canNick=!existing||!t||now()-t>=NICK_DELAY;
   $("nick").disabled=existing&&!canNick;
   $("nickCooldown").textContent=existing?nickWaitText():"Le pseudo sera ensuite modifiable une fois tous les 30 jours.";
-  $("nickCooldown").classList.toggle("ok",existing&&canNick);
+  $("nickCooldown").classList.toggle("ok",existing&&canNick);let sb=Number(profile?.soloBest||0);$("soloPalmares").textContent=`Palmarès solo : ${sb} mot${sb>1?"s":""}`;
   $("saveProfile").textContent=existing?"Enregistrer les modifications":"Enregistrer mon profil";
 }
 function openProfile(){
@@ -376,7 +442,8 @@ $("saveProfile").onclick=async()=>{
       nick:v,
       avatarId:selectedAvatar,
       updatedAt:serverTimestamp(),
-      nickChangedAt:nickChanged?serverTimestamp():(old?.nickChangedAt||old?.updatedAt||serverTimestamp())
+      nickChangedAt:nickChanged?serverTimestamp():(old?.nickChangedAt||old?.updatedAt||serverTimestamp()),
+      soloBest:Number(old?.soloBest||0)
     };
     await set(ref(db,"profiles/"+uid),p);
     let fresh=await get(ref(db,"profiles/"+uid));
@@ -413,6 +480,81 @@ dictionary();
 onAuthStateChanged(auth,async u=>{if(u){await loadProfile(u);await cleanup();if(profile)await restoreSession()}else{uid=null;profile=null;$("authBox").classList.remove("hidden");$("profileBox").classList.add("hidden");$("playActions").classList.add("hidden");}});
 
 onValue(ref(db,".info/connected"),s=>{let ok=s.val()===true;$("netBanner").classList.toggle("hidden",ok);if(ok&&roomCode&&!leaving)presence()});
+
+function soloUsed(){return new Set((solo?.history||[]).map(key))}
+function soloTimerInfo(){let n=Math.max(0,solo?.score||0),steps=Math.min(9,Math.floor(n/10)),malus=steps*5,limit=Math.max(15,60-malus),toNext=limit>15?10-(n%10):0;return{malus,limit,toNext,progress:limit>15?(n%10)*10:100}}
+function fitWord(el,word){el.textContent=(word||"").toUpperCase();el.classList.toggle("wordLong",(word||"").length>=8);el.classList.toggle("wordVeryLong",(word||"").length>=10)}
+function soloStartChoices(){
+  if(!dictReady)return msg("homeMsg","Dictionnaire non chargé.","bad");
+  let a=starts();if(a.length<3)return msg("homeMsg","Impossible de préparer les mots de départ.","bad");
+  solo={lives:3,score:0,current:"",history:[],choices:a,startedAt:0};
+  clearInterval(soloTick);
+  $("soloEnd").classList.add("hidden");$("soloPlay").classList.add("hidden");$("soloChoice").classList.remove("hidden");
+  $("soloLives").textContent="❤️❤️❤️";$("soloScore").textContent="0";$("soloMsg").textContent="";
+  $("soloChoices").innerHTML=a.map(w=>`<button type="button" class="soloChoice" data-w="${w}">${w.toUpperCase()}</button>`).join("");
+  document.querySelectorAll(".soloChoice").forEach(b=>b.onclick=()=>soloBegin(b.dataset.w));
+  screen("solo");
+}
+function soloBegin(w){
+  solo.current=w;solo.history=[w];solo.startedAt=now();
+  $("soloChoice").classList.add("hidden");$("soloPlay").classList.remove("hidden");
+  $("soloAnswer").value="";renderSolo();setTimeout(()=>$("soloAnswer").focus(),0);
+}
+function renderSolo(){
+  if(!solo)return;
+  $("soloLives").textContent="❤️".repeat(solo.lives)||"💀";$("soloScore").textContent=solo.score;
+  fitWord($("soloCurrent"),solo.current);
+  let prev="";$("soloHistory").innerHTML=solo.history.map(w=>{let z=`<span class="pill">${marked(prev,w)}</span>`;prev=w;return z}).join("");
+  clearInterval(soloTick);
+  let draw=()=>{
+    if(!solo||!solo.startedAt)return;
+    let ti=soloTimerInfo(),left=Math.max(0,ti.limit*1000-(now()-solo.startedAt));
+    $("soloTimer").textContent=Math.ceil(left/1000);$("soloMalus").textContent=ti.malus?`(-${ti.malus}s)`:"";
+    $("soloGaugeText").textContent=ti.limit<=15?"Chrono minimum atteint : 15 s":`−5 s dans ${ti.toNext} mot${ti.toNext>1?"s":""}`;
+    $("soloGaugeFill").style.width=ti.progress+"%";$("soloTimer").classList.toggle("danger",left<=5000);
+    if(left<=0){clearInterval(soloTick);soloLoseLife()}
+  };
+  draw();soloTick=setInterval(draw,200);
+}
+function soloLoseLife(){
+  if(!solo)return;solo.lives--;$("soloLives").textContent="❤️".repeat(solo.lives)||"💀";
+  if(solo.lives<=0)return soloFinish();
+  let a=starts();solo.current="";solo.history=[];solo.choices=a;solo.startedAt=0;
+  $("soloPlay").classList.add("hidden");$("soloChoice").classList.remove("hidden");
+  $("soloMsg").textContent="";
+  $("soloChoices").innerHTML=a.map(w=>`<button type="button" class="soloChoice" data-w="${w}">${w.toUpperCase()}</button>`).join("");
+  document.querySelectorAll(".soloChoice").forEach(b=>b.onclick=()=>soloBegin(b.dataset.w));
+}
+async function soloFinish(){
+  clearInterval(soloTick);$("soloPlay").classList.add("hidden");$("soloChoice").classList.add("hidden");$("soloEnd").classList.remove("hidden");
+  $("soloFinalScore").textContent=solo.score;
+  let best=Number(profile?.soloBest||0),isBest=solo.score>best;
+  if(isBest&&uid){
+    try{
+      await update(ref(db,"profiles/"+uid),{soloBest:solo.score});
+      profile={...profile,soloBest:solo.score};
+      $("soloBestMsg").textContent=`Nouveau record : ${solo.score} mots !`;
+      $("soloBestMsg").className="msg ok";
+    }catch(e){console.error("Record solo:",e);$("soloBestMsg").textContent="Score terminé, mais le record n’a pas pu être enregistré."; $("soloBestMsg").className="msg bad"}
+  }else{
+    $("soloBestMsg").textContent=`Meilleur score : ${best} mot${best>1?"s":""}.`;
+    $("soloBestMsg").className="msg";
+  }
+  refreshProfileEditor();
+}
+$("soloBtn").onclick=soloStartChoices;
+$("soloReplay").onclick=soloStartChoices;
+$("soloQuit").onclick=()=>{clearInterval(soloTick);solo=null;screen("home");showPlayMenu()};
+$("soloForm").onsubmit=e=>{
+  e.preventDefault();if(!solo?.current)return;
+  let w=norm($("soloAnswer").value);if(!w)return;
+  if(soloUsed().has(key(w)))return msg("soloMsg","Mot déjà joué.","bad");
+  if(!mutation(solo.current,w))return msg("soloMsg","Ajoute, retire ou remplace exactement une lettre.","bad");
+  if(!dictReady||!WORDS.has(key(w)))return msg("soloMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad");
+  w=WORD_FORM.get(key(w))||w;solo.current=w;solo.history.push(w);solo.score++;solo.startedAt=now();
+  $("soloAnswer").value="";msg("soloMsg","","");renderSolo();setTimeout(()=>$("soloAnswer").focus(),0);
+};
+
 $("showCreate").onclick=()=>{$("tabPlay").disabled=true;$("tabPlay").classList.remove("active");$("playMenu").classList.add("hidden");
   $("createBox").classList.remove("hidden");
   $("joinBox").classList.add("hidden");
@@ -468,7 +610,7 @@ $('readyBtn').onclick=async()=>{let me=slot();if(!me||room?.status!=='lobby')ret
 $('startGame').onclick=async()=>{if(room?.status!=='lobby'||room.host!==uid||!room.players?.p1?.ready||!room.players?.p2?.ready)return;let a=starts();await runTransaction(ref(db,'rooms/'+roomCode),d=>{if(!d||d.status!=='lobby'||d.host!==uid||!d.players?.p1?.ready||!d.players?.p2?.ready)return;d.players.p1.lives=d.players.p2.lives=3;d.status='voting';d.game={round:1,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:'',voteStartedAt:now()};d.lastActivity=now();d.deleteAfter=now()+TTL;return d})};
 function game(){let g=room.game||{},p1=room.players.p1||{},p2=room.players.p2||{},me=slot();$('gn1').textContent=p1.nick;$('gn2').textContent=p2.nick;$('ga1').innerHTML=avatarMarkup(p1.avatarId||'avatar01');$('ga2').innerHTML=avatarMarkup(p2.avatarId||'avatar02');$('gs1').textContent='❤️'.repeat(Math.max(0,p1.lives??3))||'💀';$('gs2').textContent='❤️'.repeat(Math.max(0,p2.lives??3))||'💀';$('gp1').classList.toggle('active',g.turn==='p1'||room.status==='opening');$('gp2').classList.toggle('active',g.turn==='p2'||room.status==='opening');let hh=hist(g),prev='';$('history').innerHTML=hh.map(x=>{let z=`<span class="pill">${marked(prev,x.word)}</span>`;prev=x.word;return z}).join('');$('choiceBox').classList.toggle('hidden',room.status!=='voting');$('form').classList.toggle('hidden',!['opening','playing'].includes(room.status));$('nextRound').classList.toggle('hidden',room.status!=='roundEnd');$('solutions').classList.toggle('hidden',!['roundEnd','finished'].includes(room.status)||!(g.solutions||[]).length);$('solutions').innerHTML=(g.solutions||[]).map(w=>`<span class="pill" style="font-weight:850;color:var(--ok)">${marked(g.current,w)}</span>`).join('');$('endActions').classList.toggle('hidden',!['finished','abandoned'].includes(room.status));clearInterval(tick);
 if(room.status==='voting'){let v=g.votes||{},mine=v[me],voteStart=g.voteStartedAt||now();$('current').textContent='VOTE';$('turn').textContent='Les deux joueurs votent';let drawVote=()=>{let left=Math.max(0,15000-(now()-voteStart));$('timer').textContent=Math.ceil(left/1000);$('malus').textContent='';$('gaugeText').textContent='';$('gaugeFill').style.width='0%';$('timer').classList.toggle('danger',left<=5000);if(left<=0){clearInterval(tick);resolveVoteTimeout()}};drawVote();tick=setInterval(drawVote,100);$('choiceTitle').textContent=mine?`Ton vote : ${mine.toUpperCase()}`:'Vote pour un mot';$('voteInfo').textContent=`${Object.keys(v).length}/2 votes reçus`;$('choices').innerHTML=Object.values(g.choices||{}).map(w=>{let who=[];if(v.p1===w)who.push(p1.nick);if(v.p2===w)who.push(p2.nick);return `<div style="flex:1;text-align:center"><button class="${mine===w?'':'secondary'} choice" data-w="${w}">${w.toUpperCase()}</button><div class="small" style="min-height:20px;margin-top:4px">${who.length?who.join(' + '):'—'}</div></div>`}).join('');document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>vote(b.dataset.w));if(v.p1&&v.p2)resolveVote();return}
-$('current').textContent=(g.current||'').toUpperCase();if(room.status==='roundEnd'){$('timer').textContent='—';$('turn').textContent=g.message||'Manche terminée';let rr=g.roundReady||{};$('nextRound').textContent=rr[me]?'✓ PRÊT — EN ATTENTE':"JE SUIS PRÊT";$('nextRound').disabled=!!rr[me];$('gameMsg').textContent=`Prêts pour la suite : ${Object.keys(rr).length}/2`;return}if(room.status==='finished'){let w=(p1.lives??3)>0?p1.nick:p2.nick,rv=g.replayVotes||{};$('timer').textContent='🏆';$('malus').textContent='';$('gaugeText').textContent='';$('gaugeFill').style.width='0%';$('turn').textContent=`${w} remporte la partie !`;$('replay').textContent=rv[me]?'✓ REVANCHE — EN ATTENTE':`Rejouer (${Object.keys(rv).length}/2)`;$('replay').disabled=!!rv[me];return}if(room.status==='abandoned'){$('timer').textContent='—';$('turn').textContent=g.message||'Partie terminée';return}
+fitWord($('current'),g.current||'');if(room.status==='roundEnd'){$('timer').textContent='—';$('turn').textContent=g.message||'Manche terminée';let rr=g.roundReady||{};$('nextRound').textContent=rr[me]?'✓ PRÊT — EN ATTENTE':"JE SUIS PRÊT";$('nextRound').disabled=!!rr[me];$('gameMsg').textContent=`Prêts pour la suite : ${Object.keys(rr).length}/2`;return}if(room.status==='finished'){let w=(p1.lives??3)>0?p1.nick:p2.nick,rv=g.replayVotes||{};$('timer').textContent='🏆';$('malus').textContent='';$('gaugeText').textContent='';$('gaugeFill').style.width='0%';$('turn').textContent=`${w} remporte la partie !`;$('replay').textContent=rv[me]?'✓ REVANCHE — EN ATTENTE':`Rejouer (${Object.keys(rv).length}/2)`;$('replay').disabled=!!rv[me];return}if(room.status==='abandoned'){$('timer').textContent='—';$('turn').textContent=g.message||'Partie terminée';return}
 let opening=room.status==='opening',mine=opening||me===g.turn;$('answer').disabled=!mine;$('validate').disabled=!mine;if(mine)setTimeout(()=>{$('answer').focus()},0);$('turn').textContent=opening?'Ouverture : les deux joueurs peuvent jouer':`Tour de ${room.players[g.turn].nick}`;let draw=()=>{let gg=room.game,ti=timerInfo(gg),left=Math.max(0,ti.limit*1000-(now()-(gg.turnStartedAt||now())));$('timer').textContent=Math.ceil(left/1000);$('malus').textContent=ti.malus?`(-${ti.malus}s)`:'';$('gaugeText').textContent=ti.limit<=15?'Chrono minimum atteint : 15 s':`−5 s dans ${ti.toNext} mot${ti.toNext>1?'s':''}`;$('gaugeFill').style.width=ti.progress+'%';$('timer').classList.toggle('danger',left<=5000);let op=other(me),po=room.players[op];$('gameMsg').textContent=po?.online===false?`${po.nick} est déconnecté — 90 s pour revenir.`:(opening?'Premier mot valide lance l’alternance. Si personne ne trouve : nouveau vote.':'');if(left<=0){let k=gg.round+':'+room.status+':'+gg.turnStartedAt;if(k!==lastTimeout){lastTimeout=k;if(room.status==='opening')revote();else if(me===gg.turn)endRound(other(gg.turn),`${room.players[gg.turn].nick} n'a pas répondu à temps.`)}}if(po?.online===false&&po.lastSeen&&now()-po.lastSeen>=GRACE)abandon(op)};draw();tick=setInterval(draw,250)}
 async function vote(w){let me=slot();if(room?.status!=='voting'||!Object.values(room.game.choices||{}).includes(w))return;await update(ref(db,`rooms/${roomCode}/game/votes`),{[me]:w})}
 async function resolveVote(){await runTransaction(ref(db,'rooms/'+roomCode),d=>{if(!d||d.status!=='voting'||!d.game?.votes?.p1||!d.game?.votes?.p2)return;let a=d.game.votes.p1,b=d.game.votes.p2,w=a===b?a:(Math.random()<.5?a:b);d.status='opening';d.game.current=w;d.game.history={0:{seq:0,word:w,by:'start',at:now()}};d.game.seq=0;d.game.turn=null;d.game.turnStartedAt=now();delete d.game.votes;delete d.game.choices;delete d.game.voteStartedAt;return d})}
