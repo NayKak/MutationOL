@@ -705,6 +705,101 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   overflow:auto!important;
 }
 
+
+/* V84 — bloc statistiques du profil harmonisé */
+#profileBox .profileHead{
+  grid-template-columns:auto minmax(0,1fr) minmax(155px,auto)!important;
+  gap:12px!important;
+  align-items:center!important;
+}
+#profileBox .profileHead > div:last-child{
+  width:100%!important;
+  max-width:210px!important;
+  justify-self:end!important;
+  display:grid!important;
+  gap:6px!important;
+}
+#profileBox #soloPalmares{
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:8px 10px!important;
+  border:1px solid #236878!important;
+  border-radius:14px!important;
+  background:#092a32!important;
+  color:#62e66d!important;
+  text-align:center!important;
+  font-size:13px!important;
+  line-height:1.2!important;
+  font-weight:800!important;
+}
+#profileBox .profileRankLines{
+  width:100%!important;
+  display:grid!important;
+  gap:0!important;
+  border:1px solid #284957!important;
+  border-radius:14px!important;
+  overflow:hidden!important;
+  background:#0b2028!important;
+  text-align:left!important;
+  font-size:11px!important;
+  line-height:1.2!important;
+}
+#profileBox .profileRankLines > div{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  padding:7px 9px!important;
+  color:#8faab3!important;
+}
+#profileBox .profileRankLines > div + div{
+  border-top:1px solid #284957!important;
+}
+#profileBox .profileRankLines b{
+  flex:0 0 auto!important;
+  color:#d8f7ff!important;
+  font-size:11px!important;
+  font-weight:800!important;
+}
+@media(max-width:480px){
+  #profileBox .profileHead{
+    grid-template-columns:58px minmax(0,1fr) minmax(142px,175px)!important;
+    gap:10px!important;
+  }
+  #profileBox .profileHead > div:last-child{max-width:175px!important}
+  #profileBox #soloPalmares{font-size:11px!important;padding:7px 7px!important}
+  #profileBox .profileRankLines{font-size:10px!important}
+  #profileBox .profileRankLines > div{padding:6px 7px!important;gap:5px!important}
+  #profileBox .profileRankLines b{font-size:10px!important}
+}
+
+
+/* V85 — même espace sous chaque séparateur du profil */
+#profileBox .profileSectionTitle{
+  margin-top:20px!important;
+  margin-bottom:14px!important;
+}
+#existingProfileOptions{
+  gap:0!important;
+}
+#existingProfileOptions > .profileSectionTitle{
+  margin-top:20px!important;
+  margin-bottom:14px!important;
+}
+#existingProfileOptions > .profileSectionTitle + .prefRow,
+#existingProfileOptions > .profileSectionTitle + .dangerProfileActions{
+  margin-top:0!important;
+}
+#existingProfileOptions .prefRow + .prefRow{
+  margin-top:14px!important;
+}
+#existingProfileOptions .dangerProfileActions{
+  display:grid!important;
+  gap:14px!important;
+  margin:0!important;
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1107,7 +1202,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V83", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V85", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
