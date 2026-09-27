@@ -308,7 +308,12 @@ async function loadProfile(u){
   }else{
     $("playActions").classList.add("hidden");
     openProfile();
-    $("closeProfileBtn").classList.add("hidden");
+    if(u.isAnonymous){
+      $("closeProfileBtn").textContent="← Retour";
+      $("closeProfileBtn").classList.remove("hidden");
+    }else{
+      $("closeProfileBtn").classList.add("hidden");
+    }
   }
 }
 async function loginProvider(provider){
@@ -327,6 +332,18 @@ async function loginProvider(provider){
 $("googleLogin").onclick=()=>loginProvider(new GoogleAuthProvider());
 $("facebookLogin").onclick=()=>loginProvider(new FacebookAuthProvider());
 $("guestLogin").onclick=async()=>{try{await signInAnonymously(auth)}catch(e){msg("homeMsg","Connexion invité impossible.","bad")}};
+$("closeProfileBtn").onclick=async()=>{
+  if(auth.currentUser?.isAnonymous && !profile){
+    try{await signOut(auth)}catch(e){}
+    $("profileBox").classList.add("hidden");
+    $("playActions").classList.add("hidden");
+    $("authBox").classList.remove("hidden");
+    $("closeProfileBtn").classList.add("hidden");
+    msg("homeMsg","");
+    return;
+  }
+  closeProfile();
+};
 $("saveProfile").onclick=async()=>{
   let old=profile;
   let v=$("nick").value.trim();
@@ -349,10 +366,9 @@ $("saveProfile").onclick=async()=>{
     $("closeProfileBtn").classList.remove("hidden");
     closeProfile();
     msg("homeMsg","Profil enregistré.","ok");
-  }catch(e){msg("homeMsg","Impossible d’enregistrer le profil — "+(e?.code||"erreur"),"bad")}
+  }catch(e){console.error("Enregistrement profil:",e);msg("homeMsg","Impossible d’enregistrer le profil — "+(e?.code||"erreur"),"bad")}
 };
 $("profileShortcut").onclick=()=>{openProfile();document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"))};
-$("closeProfileBtn").onclick=showPlayMenu;
 $("tabPlay").onclick=showPlayMenu;
 $("tabRank").onclick=()=>msg("homeMsg","Classement : à venir.","");
 $("rankedBtn").onclick=()=>msg("homeMsg","Les parties classées arrivent bientôt.","");
