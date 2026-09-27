@@ -122,6 +122,26 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 .deletedLetter:after{transform:translate(-50%,-50%) rotate(-42deg)}
 .replacedOld{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:#ff405f}
 .changedLetter,.addedLetter{color:#ff667d;text-shadow:0 0 8px #ff405f40}
+
+/* V37 — couleurs explicites des mutations dans les règles */
+.ruleExample .changedLetter,
+.ruleExample .addedLetter{
+  color:#ff405f!important;
+  text-shadow:0 0 8px #ff405f66!important;
+  font-weight:950!important;
+}
+.ruleExample .deletedLetter{
+  color:#ff405f!important;
+}
+/* Croix de fermeture de la fenêtre Règles */
+#closeRules{
+  color:#ff405f!important;
+  border-color:#a83c50!important;
+}
+#closeRules:hover,#closeRules:focus{
+  background:#3b151d!important;
+  color:#ff7189!important;
+}
 </style>
 </head>
 <body><div class="app">
@@ -142,7 +162,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
     <span>on ajoute un T</span>
   </div>
 </div>
-<p>Le nouveau mot doit être accepté par le dictionnaire du jeu. Chaque joueur possède 3 vies ; perdre une manche fait perdre une vie.</p><p>Le chrono commence à 60 secondes et diminue de 5 secondes tous les 10 mots échangés dans la manche, jusqu’à un minimum de 15 secondes.</p><p>À 0 vie, la partie est perdue.</p></div></div></div>
+<p>Le nouveau mot doit être accepté par le dictionnaire du jeu. <strong>Un mot déjà utilisé au cours de la manche ne peut pas être rejoué.</strong> Chaque joueur possède 3 vies ; perdre une manche fait perdre une vie.</p><p>Le chrono commence à 60 secondes et diminue de 5 secondes tous les 10 mots échangés dans la manche, jusqu’à un minimum de 15 secondes.</p><p>À 0 vie, la partie est perdue.</p></div></div></div>
 <div id="logoutModal" class="modal hidden"><div class="modalCard confirmCard"><h2>Se déconnecter ?</h2><p class="small center">Tu devras te reconnecter pour retrouver ton profil.</p><div class="row"><button id="cancelLogout" class="secondary" type="button">Annuler</button><button id="confirmLogout" class="dangerBtn" type="button">Déconnexion</button></div></div></div>
 <div id="netBanner" class="msg hidden">Connexion perdue — reconnexion…</div>
 
