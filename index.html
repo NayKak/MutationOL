@@ -641,7 +641,6 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 
 
 <div id="anonymousHelpModal" class="modal hidden"><div class="modalCard">
-  <button id="closeAnonymousHelp" type="button" class="modalX">×</button>
   <h3>Mode Anonyme</h3>
   <p>Si « Anonyme » est activé, ton pseudo et ton score n’apparaissent plus dans les classements publics. Tu peux désactiver cette option plus tard pour réapparaître avec ton meilleur score.</p>
   <button id="okAnonymousHelp" type="button">Compris</button>
@@ -679,7 +678,6 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 
 <div id="clearErrorHelpModal" class="modal hidden">
   <div class="modalCard">
-    <button id="closeClearErrorHelp" type="button" class="modalX" aria-label="Fermer">×</button>
     <h3>Effacer le texte en cas d’erreur</h3>
     <p>Permet, lorsqu’un mot n’existe pas dans le dictionnaire ou qu’il a déjà été joué, d’effacer automatiquement le champ de texte en cours.</p>
     <button id="okClearErrorHelp" type="button">Compris</button>
@@ -908,7 +906,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V74", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V75", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -1296,7 +1294,7 @@ $("anonymousRanking").onchange=()=>{$("anonymousLabel").textContent=$("anonymous
 function openSimpleModal(id){$(id).classList.remove("hidden")}
 function closeSimpleModal(id){$(id).classList.add("hidden")}
 $("anonymousHelp").onclick=()=>openSimpleModal("anonymousHelpModal");
-$("closeAnonymousHelp").onclick=$("okAnonymousHelp").onclick=()=>closeSimpleModal("anonymousHelpModal");
+$("okAnonymousHelp").onclick=()=>closeSimpleModal("anonymousHelpModal");
 
 $("resetSoloHelp").onclick=e=>{e.stopPropagation();openSimpleModal("resetSoloHelpModal")};
 $("closeResetSoloHelp").onclick=$("okResetSoloHelp").onclick=()=>closeSimpleModal("resetSoloHelpModal");
