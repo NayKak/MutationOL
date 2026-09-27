@@ -186,6 +186,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 </section>
 </div>
 
+<footer class="siteFooter"><button id="footerContact" type="button" class="footerContact">Contact</button><div>© Noobix 2026 — Tous droits réservés</div></footer>
 <script type="module">
 // V27 : les contrôles UI ne sont jamais considérés comme une sécurité ; Firebase Rules reste l’autorité.
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
@@ -327,7 +328,7 @@ $("closeProfileBtn").onclick=showPlayMenu;
 $("tabPlay").onclick=showPlayMenu;
 $("tabRank").onclick=()=>msg("homeMsg","Classement : à venir.","");
 $("rankedBtn").onclick=()=>msg("homeMsg","Les parties classées arrivent bientôt.","");
-$("footerContact").onclick=()=>msg("homeMsg","Contact : à venir.","");
+const footerContact=$("footerContact"); if(footerContact) footerContact.onclick=()=>msg("homeMsg","Contact : à venir.","");
 $("rulesBtn").onclick=()=>$("rulesModal").classList.remove("hidden");
 $("closeRules").onclick=()=>$("rulesModal").classList.add("hidden");
 $("rulesModal").onclick=e=>{if(e.target===$("rulesModal"))$("rulesModal").classList.add("hidden")};
