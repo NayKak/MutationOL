@@ -367,8 +367,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 <section id="home" class="card">
 <div id="authBox">
   <div class="authTitle">Comment veux-tu jouer ?</div>
-  <button id="googleLogin" type="button">Créer un compte avec Google</button>
-	<button id="twitchLogin" type="button" class="secondary">Créer un compte avec Twitch</button>
+  <button id="googleLogin" type="button">Se connecter avec Google</button>
+	<button id="twitchLogin" type="button" class="secondary">Se connecter avec Twitch</button>
   <button id="guestLogin" type="button" class="secondary">Jouer sans s'inscrire</button>
   <div class="privacyMemo">🔒 Vos informations personnelles ne seront pas affichées. Vous connecter permet uniquement de retrouver votre compte et votre classement.</div>
 </div>
@@ -666,7 +666,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V67", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V68", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
