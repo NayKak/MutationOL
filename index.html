@@ -564,6 +564,20 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 #profileBox .profileSectionTitle + .avatarGallery{margin-top:0!important}
 #existingProfileOptions > .profileSectionTitle{margin:18px 0 12px}
 
+
+/* V78 — mêmes dimensions pour les lettres rouges et blanches de l'exemple */
+.ruleMutation > strong{font-size:22px!important;line-height:1.25!important}
+.ruleMutation > strong .deletedLetter,
+.ruleMutation > strong .changedLetter,
+.ruleMutation > strong .addedLetter{
+  display:inline!important;
+  font-size:22px!important;
+  line-height:1.25!important;
+  font-weight:700!important;
+  font-family:inherit!important;
+  vertical-align:baseline!important;
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -941,7 +955,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V77", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V78", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
