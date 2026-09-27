@@ -234,6 +234,9 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 .rankingComing{text-align:center;padding:35px 10px;display:grid;gap:7px;color:#a9cad3}
 .rankingComingIcon{font-size:42px}.rankingComing b{font-size:21px;color:#fff}.rankingComing span{font-weight:850}
 @media(max-width:460px){.rankingTabs{grid-template-columns:1fr}.rankingRow{grid-template-columns:42px 1fr auto;padding:10px 9px}.rankingScore{font-size:14px}}
+
+/* V47 — navigation classement */
+.rankingBack{display:block;width:100%;margin-top:16px}
 </style>
 </head>
 <body><div class="app">
@@ -318,8 +321,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 
 <section id="rankingPanel" class="card hidden">
   <div class="rankingTabs">
-    <button id="rankingMultiTab" type="button" class="rankingTab">Classement multijoueur</button>
-    <button id="rankingSoloTab" type="button" class="rankingTab active">Classement solo</button>
+    <button id="rankingMultiTab" type="button" class="rankingTab">Multijoueur</button>
+    <button id="rankingSoloTab" type="button" class="rankingTab active">Solo</button>
   </div>
   <div id="rankingMulti" class="rankingView hidden">
     <div class="rankingComing"><div class="rankingComingIcon">🏆</div><b>Classement multijoueur</b><span>À venir</span></div>
@@ -329,6 +332,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
     <div class="rankingSubtitle">Les meilleurs Palmarès solo des joueurs enregistrés.</div>
     <div id="soloRankingList" class="rankingList"><div class="rankingLoading">Chargement du classement…</div></div>
   </div>
+  <button id="rankingBack" type="button" class="secondary rankingBack">← Retour</button>
 </section>
 
 <section id="solo" class="card hidden">
@@ -701,6 +705,7 @@ async function loadSoloRanking(){
 }
 $("rankingMultiTab").onclick=()=>showRankingMode("multi");
 $("rankingSoloTab").onclick=()=>showRankingMode("solo");
+$("rankingBack").onclick=()=>{screen("home");showPlayMenu()};
 
 function soloUsed(){return new Set((solo?.history||[]).map(key))}
 function soloTimerInfo(){let n=Math.max(0,solo?.score||0),steps=Math.min(9,Math.floor(n/10)),malus=steps*5,limit=Math.max(15,60-malus),toNext=limit>15?10-(n%10):0;return{malus,limit,toNext,progress:limit>15?(n%10)*10:100}}
