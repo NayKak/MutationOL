@@ -422,7 +422,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 
 <section id="solo" class="card hidden">
   <div class="soloHead">
-    <div><b>Entraînement solo</b><div id="soloLives" class="soloLives">❤️</div></div>
+    <div><b>Partie solo</b><div id="soloLives" class="soloLives">❤️</div></div>
     <div class="soloScore">Score <b id="soloScore">0</b></div>
   </div>
   <div id="soloChoice">
@@ -882,25 +882,24 @@ async function validateSoloFinish(){
     const isRegistered=!!(auth.currentUser&&!auth.currentUser.isAnonymous);
     const isHidden=!!profile?.anonymousRanking;
 
-    /* Écriture atomique : le profil et le classement sont validés par Firebase
-       dans une seule opération, ce qui évite le refus intermittent du leaderboard. */
-    const changes={};
-    if(score>oldBest) changes[`profiles/${uid}/soloBest`]=score;
+    /* V55 : on enregistre d'abord le record privé, puis le classement.
+       Les règles du classement peuvent ainsi vérifier le soloBest déjà enregistré. */
+    if(score>oldBest){
+      await update(ref(db,"profiles/"+uid),{soloBest:score});
+      profile={...profile,soloBest:score};
+    }
 
     if(isRegistered){
       if(isHidden){
-        changes[`soloLeaderboard/${uid}`]=null;
+        await remove(ref(db,"soloLeaderboard/"+uid));
       }else if(best>0){
-        changes[`soloLeaderboard/${uid}`]={
+        await set(ref(db,"soloLeaderboard/"+uid),{
           nick:profile.nick,
           score:best,
           updatedAt:serverTimestamp()
-        };
+        });
       }
     }
-
-    if(Object.keys(changes).length) await update(ref(db),changes);
-    if(score>oldBest) profile={...profile,soloBest:score};
 
     if(isRegistered&&!isHidden&&best>0){
       const pos=await soloRankPosition();
@@ -913,19 +912,12 @@ async function validateSoloFinish(){
       $("soloBestMsg").textContent=`Vous avez trouvé ${score} mot${score>1?"s":""}. Seuls les joueurs enregistrés apparaissent dans le classement solo.`;
     }
     $("soloBestMsg").className="msg ok";
-
     refreshProfileEditor();
-    btn.textContent="Retour à l’accueil";
-    btn.disabled=false;
-    btn.onclick=()=>{
-      solo=null;
-      $("soloEnd").classList.add("hidden");
-      $("soloQuit").classList.remove("hidden");
-      screen("home");showPlayMenu();
-    };
+    btn.textContent="Retour à l’accueil";btn.disabled=false;
+    btn.onclick=()=>{solo=null;$("soloEnd").classList.add("hidden");$("soloQuit").classList.remove("hidden");screen("home");showPlayMenu()};
   }catch(e){
     console.error("Validation score solo:",e);
-    $("soloBestMsg").textContent=`Impossible de valider le score${e?.code?` (${e.code})`:""}. Réessaie.`;
+    $("soloBestMsg").textContent=`Impossible de valider le score${e?.code?` (${String(e.code).toUpperCase()})`:""}. Réessaie.`;
     $("soloBestMsg").className="msg bad";
     btn.disabled=false;btn.textContent="Terminer la partie";
   }
