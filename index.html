@@ -214,6 +214,26 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   .tabs{gap:6px}
   .tabs button{flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
 }
+
+/* V45 — classement solo */
+.rankingTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.rankingTab{background:#0a2631!important;color:#b8d9e1!important;border:1px solid #24596a!important}
+.rankingTab.active{background:#16c7e1!important;color:#021116!important;border-color:#5beaff!important}
+.rankingTitle{text-align:center;font-size:23px;font-weight:950;color:#fff}
+.rankingSubtitle{text-align:center;color:#9fc4ce;margin:5px 0 16px}
+.rankingList{display:grid;gap:7px}
+.rankingRow{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:8px;padding:11px 13px;border-radius:13px;background:#09242e;border:1px solid #1c5362}
+.rankingRow.me{border-color:#54e9ff;box-shadow:0 0 0 1px #54e9ff33 inset}
+.rankingPos{text-align:center;font-weight:950;font-size:17px;color:#dffaff}
+.rankingNick{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.rankingScore{font-weight:900;color:#63ef55;white-space:nowrap}
+.rankingRow:nth-child(1){background:linear-gradient(90deg,#3a3210,#09242e)}
+.rankingRow:nth-child(2){background:linear-gradient(90deg,#28353a,#09242e)}
+.rankingRow:nth-child(3){background:linear-gradient(90deg,#3a2519,#09242e)}
+.rankingLoading,.rankingEmpty{text-align:center;padding:25px 10px;color:#a9cad3}
+.rankingComing{text-align:center;padding:35px 10px;display:grid;gap:7px;color:#a9cad3}
+.rankingComingIcon{font-size:42px}.rankingComing b{font-size:21px;color:#fff}.rankingComing span{font-weight:850}
+@media(max-width:460px){.rankingTabs{grid-template-columns:1fr}.rankingRow{grid-template-columns:42px 1fr auto;padding:10px 9px}.rankingScore{font-size:14px}}
 </style>
 </head>
 <body><div class="app">
@@ -295,6 +315,21 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 </div>
 </section>
 
+
+<section id="rankingPanel" class="card hidden">
+  <div class="rankingTabs">
+    <button id="rankingMultiTab" type="button" class="rankingTab">Classement multijoueur</button>
+    <button id="rankingSoloTab" type="button" class="rankingTab active">Classement solo</button>
+  </div>
+  <div id="rankingMulti" class="rankingView hidden">
+    <div class="rankingComing"><div class="rankingComingIcon">🏆</div><b>Classement multijoueur</b><span>À venir</span></div>
+  </div>
+  <div id="rankingSolo" class="rankingView">
+    <div class="rankingTitle">Classement solo</div>
+    <div class="rankingSubtitle">Les meilleurs Palmarès solo des joueurs enregistrés.</div>
+    <div id="soloRankingList" class="rankingList"><div class="rankingLoading">Chargement du classement…</div></div>
+  </div>
+</section>
 
 <section id="solo" class="card hidden">
   <div class="soloHead">
@@ -389,7 +424,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 // V27 : les contrôles UI ne sont jamais considérés comme une sécurité ; Firebase Rules reste l’autorité.
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,GoogleAuthProvider,FacebookAuthProvider,signInWithPopup,signOut}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import{getDatabase,ref,get,set,update,remove,onValue,runTransaction,onDisconnect,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+import {getDatabase,ref,get,set,update,remove,onValue,runTransaction,onDisconnect,serverTimestamp,query,orderByChild,limitToLast} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 const firebaseConfig={apiKey:"AIzaSyAbPp2anmsI_iuJiZJ74uRt_igmFLA3PIU",authDomain:"mutation-216a2.firebaseapp.com",databaseURL:"https://mutation-216a2-default-rtdb.europe-west1.firebasedatabase.app/",projectId:"mutation-216a2",storageBucket:"mutation-216a2.firebasestorage.app",messagingSenderId:"742495380577",appId:"1:742495380577:web:c42e6d3101d5f09ba93620"};
 const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvafVO83vnE0VivCZTeIoKHOMKBYcTK9a1FfIetJ3FlMprb5NoUUUxOrrKZzt4vNzIBFmNXhDsHzM0/pub?output=csv";
 const TTL=86400000,CLOSED=600000,GRACE=90000;
@@ -401,7 +436,7 @@ const SESSION_KEY="mutation_active_room",NICK_KEY="mutation_nick";
 function saveSession(c){try{localStorage.setItem(SESSION_KEY,c);if(nick())localStorage.setItem(NICK_KEY,nick())}catch{}}
 function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch{}}
 async function restoreSession(){let c;try{c=localStorage.getItem(SESSION_KEY);let n=localStorage.getItem(NICK_KEY);if(n&&!$("nick").value)$("nick").value=n}catch{}if(!c||!uid)return;try{let s=await get(ref(db,"rooms/"+c));if(!s.exists()){clearSession();return}let d=s.val();if(d.lastActivity&&now()-d.lastActivity>=INACTIVE){try{await remove(ref(db,"rooms/"+c))}catch{}clearSession();return}let me=d.players?.p1?.uid===uid?"p1":d.players?.p2?.uid===uid?"p2":null;if(!me){clearSession();return}room=d;roomCode=c;await update(ref(db,`rooms/${c}/players/${me}`),{online:true,lastSeen:now()});subscribe(c)}catch{}}
-function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}function screen(id){["home","lobby","game","solo"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}function screen(id){["home","lobby","game","solo","rankingPanel"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
 function slot(d=room){return d?.players?.p1?.uid===uid?"p1":d?.players?.p2?.uid===uid?"p2":null}
 function code(){let a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";return Array.from({length:5},()=>a[Math.random()*a.length|0]).join("")}
 function starts(){if(SHORT.length<3)return [];let a=[...SHORT],o=[];while(o.length<3){let i=Math.random()*a.length|0;o.push(a.splice(i,1)[0])}return o}
@@ -530,6 +565,9 @@ $("saveProfile").onclick=async()=>{
       soloBest:Number(old?.soloBest||0)
     };
     await set(ref(db,"profiles/"+uid),p);
+    if(!auth.currentUser?.isAnonymous && Number(p.soloBest||0)>0){
+      await set(ref(db,"soloLeaderboard/"+uid),{nick:p.nick,score:Number(p.soloBest),updatedAt:serverTimestamp()});
+    }
     let fresh=await get(ref(db,"profiles/"+uid));
     profile=fresh.val();
     $("profileName").textContent=profile.nick;syncMenuIdentity();
@@ -541,7 +579,7 @@ $("saveProfile").onclick=async()=>{
 };
 $("profileShortcut").onclick=()=>{openProfile();document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"))};
 $("tabPlay").onclick=showPlayMenu;
-$("tabRank").onclick=()=>msg("homeMsg","Classement : à venir.","");
+$("tabRank").onclick=()=>{screen("rankingPanel");showRankingMode("solo")};
 $("rankedBtn").onclick=()=>msg("homeMsg","Les parties classées arrivent bientôt.","");
 const footerContact=$("footerContact"); if(footerContact) footerContact.onclick=()=>msg("homeMsg","Contact : à venir.","");
 $("rulesBtn").onclick=()=>$("rulesModal").classList.remove("hidden");
@@ -597,6 +635,73 @@ $("contactForm").onsubmit=async e=>{
   }finally{btn.disabled=false}
 };
 
+
+
+/* V46 — télémétrie anti-triche.
+   Les signaux sont indicatifs : aucun bannissement automatique côté client. */
+let anti={lastMoveAt:0,rapidStreak:0,rapidMoves:0,invalidMoves:0,tooRegular:0,intervals:[],lastFlush:0};
+function antiResetRound(){
+  anti.lastMoveAt=0;anti.rapidStreak=0;anti.intervals=[];anti.tooRegular=0;
+}
+function antiSignal(kind,amount=1,detail=""){
+  if(!uid||auth.currentUser?.isAnonymous)return;
+  anti[kind]=(anti[kind]||0)+amount;
+  const t=Date.now();
+  if(t-anti.lastFlush<2500 && kind!=="impossibleMoves")return;
+  anti.lastFlush=t;
+  const payload={
+    updatedAt:serverTimestamp(),
+    rapidMoves:Number(anti.rapidMoves||0),
+    invalidMoves:Number(anti.invalidMoves||0),
+    tooRegular:Number(anti.tooRegular||0),
+    impossibleMoves:Number(anti.impossibleMoves||0),
+    lastDetail:String(detail||"").slice(0,120)
+  };
+  update(ref(db,"antiCheatSignals/"+uid),payload).catch(()=>{});
+}
+function antiValidMove(){
+  const t=performance.now();
+  if(anti.lastMoveAt){
+    const d=t-anti.lastMoveAt;
+    anti.intervals.push(d);if(anti.intervals.length>12)anti.intervals.shift();
+    if(d<350){anti.rapidStreak++; if(anti.rapidStreak>=3)antiSignal("rapidMoves",1,`3+ coups très rapides (${Math.round(d)} ms)`)}
+    else anti.rapidStreak=0;
+    if(anti.intervals.length>=8){
+      const a=anti.intervals.slice(-8),avg=a.reduce((x,y)=>x+y,0)/a.length;
+      const variance=a.reduce((x,y)=>x+(y-avg)*(y-avg),0)/a.length;
+      const sd=Math.sqrt(variance);
+      if(avg<1800&&sd<90)antiSignal("tooRegular",1,`rythme anormalement régulier, moyenne ${Math.round(avg)} ms`);
+    }
+  }
+  anti.lastMoveAt=t;
+}
+function antiInvalid(reason){
+  antiSignal("invalidMoves",1,reason);
+}
+
+let rankingMode="solo";
+function registeredProfile(){return !!(auth.currentUser&&!auth.currentUser.isAnonymous)}
+function showRankingMode(mode){
+  rankingMode=mode;
+  $("rankingMultiTab").classList.toggle("active",mode==="multi");
+  $("rankingSoloTab").classList.toggle("active",mode==="solo");
+  $("rankingMulti").classList.toggle("hidden",mode!=="multi");
+  $("rankingSolo").classList.toggle("hidden",mode!=="solo");
+  if(mode==="solo")loadSoloRanking();
+}
+async function loadSoloRanking(){
+  const box=$("soloRankingList");box.innerHTML='<div class="rankingLoading">Chargement du classement…</div>';
+  try{
+    const snap=await get(query(ref(db,"soloLeaderboard"),orderByChild("score"),limitToLast(100)));
+    let rows=[];snap.forEach(c=>{const v=c.val()||{};if(typeof v.nick==="string"&&Number(v.score)>0)rows.push({uid:c.key,nick:v.nick,score:Number(v.score)})});
+    rows.sort((a,b)=>b.score-a.score||a.nick.localeCompare(b.nick,"fr",{sensitivity:"base"}));
+    if(!rows.length){box.innerHTML='<div class="rankingEmpty">Aucun score solo enregistré pour le moment.</div>';return}
+    box.innerHTML=rows.map((r,i)=>{const rank=i+1,medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank+".";return `<div class="rankingRow${r.uid===uid?" me":""}"><div class="rankingPos">${medal}</div><div class="rankingNick">${esc(r.nick)}</div><div class="rankingScore">${r.score} mot${r.score>1?"s":""}</div></div>`}).join("");
+  }catch(e){console.error("Classement solo:",e);box.innerHTML='<div class="rankingEmpty bad">Impossible de charger le classement.</div>'}
+}
+$("rankingMultiTab").onclick=()=>showRankingMode("multi");
+$("rankingSoloTab").onclick=()=>showRankingMode("solo");
+
 function soloUsed(){return new Set((solo?.history||[]).map(key))}
 function soloTimerInfo(){let n=Math.max(0,solo?.score||0),steps=Math.min(9,Math.floor(n/10)),malus=steps*5,limit=Math.max(15,60-malus),toNext=limit>15?10-(n%10):0;return{malus,limit,toNext,progress:limit>15?(n%10)*10:100}}
 function fitWord(el,word){el.textContent=(word||"").toUpperCase();el.classList.toggle("wordLong",(word||"").length>=8);el.classList.toggle("wordVeryLong",(word||"").length>=10)}
@@ -612,6 +717,7 @@ function soloStartChoices(){
   screen("solo");
 }
 function soloBegin(w){
+  antiResetRound();
   solo.current=w;solo.history=[w];solo.startedAt=now();
   $("soloChoice").classList.add("hidden");$("soloPlay").classList.remove("hidden");
   $("soloAnswer").value="";renderSolo();setTimeout(()=>$("soloAnswer").focus(),0);
@@ -649,6 +755,7 @@ async function soloFinish(){
     try{
       await update(ref(db,"profiles/"+uid),{soloBest:solo.score});
       profile={...profile,soloBest:solo.score};
+      if(registeredProfile())await set(ref(db,"soloLeaderboard/"+uid),{nick:profile.nick,score:solo.score,updatedAt:serverTimestamp()});
       $("soloBestMsg").textContent=`Nouveau record : ${solo.score} mots !`;
       $("soloBestMsg").className="msg ok";
     }catch(e){console.error("Record solo:",e);$("soloBestMsg").textContent="Score terminé, mais le record n’a pas pu être enregistré."; $("soloBestMsg").className="msg bad"}
@@ -672,9 +779,10 @@ $("confirmSoloQuit").onclick=()=>{
 $("soloForm").onsubmit=e=>{
   e.preventDefault();if(!solo?.current)return;
   let w=norm($("soloAnswer").value);if(!w)return;
-  if(soloUsed().has(key(w)))return msg("soloMsg","Mot déjà joué.","bad");
-  if(!mutation(solo.current,w))return msg("soloMsg","Ajoute, retire ou remplace exactement une lettre.","bad");
-  if(!dictReady||!WORDS.has(key(w)))return msg("soloMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad");
+  if(soloUsed().has(key(w))){antiInvalid("solo: mot déjà joué");return msg("soloMsg","Mot déjà joué.","bad")}
+  if(!mutation(solo.current,w)){antiInvalid("solo: mutation invalide");return msg("soloMsg","Ajoute, retire ou remplace exactement une lettre.","bad")}
+  if(!dictReady||!WORDS.has(key(w))){antiInvalid("solo: mot hors dictionnaire");return msg("soloMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad")}
+  antiValidMove();
   w=WORD_FORM.get(key(w))||w;solo.current=w;solo.history.push(w);solo.score++;solo.startedAt=now();
   $("soloAnswer").value="";msg("soloMsg","","");renderSolo();setTimeout(()=>$("soloAnswer").focus(),0);
 };
