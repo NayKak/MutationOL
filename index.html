@@ -237,6 +237,20 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 
 /* V47 — navigation classement */
 .rankingBack{display:block;width:100%;margin-top:16px}
+
+/* V48 — onglets Classement toujours côte à côte, y compris sur mobile */
+#rankingPanel .rankingTabs{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:8px!important;
+}
+#rankingPanel .rankingTab{
+  width:100%!important;
+  min-width:0!important;
+  padding:12px 6px!important;
+  font-size:clamp(14px,4vw,17px)!important;
+  white-space:nowrap!important;
+}
 </style>
 </head>
 <body><div class="app">
