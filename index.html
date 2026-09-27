@@ -93,7 +93,22 @@ setInterval(activityCleanup,15000);
 async function pruneHostedRooms(keepCode){if(!uid||!keepCode||lastPrunedFor===keepCode)return;lastPrunedFor=keepCode;try{let s=await get(ref(db,"rooms")),jobs=[];s.forEach(c=>{let d=c.val();if(c.key!==keepCode&&d?.host===uid)jobs.push(remove(c.ref))});await Promise.allSettled(jobs)}catch{lastPrunedFor=""}}
 signInAnonymously(auth).catch(e=>$("status").textContent="Erreur Firebase : "+e.code);onAuthStateChanged(auth,async u=>{if(u){uid=u.uid;dictionary();await cleanup();await restoreSession()}});
 onValue(ref(db,".info/connected"),s=>{$("netBanner").classList.toggle("hidden",s.val()===true);if(s.val()&&roomCode&&!leaving)presence()});
-$("showCreate").onclick=()=>{$("createBox").classList.remove("hidden");$("joinBox").classList.add("hidden")};$("showJoin").onclick=()=>{$("joinBox").classList.remove("hidden");$("createBox").classList.add("hidden")};
+$("showCreate").onclick=()=>{
+  $("createBox").classList.remove("hidden");
+  $("joinBox").classList.add("hidden");
+  $("showCreate").classList.add("nav-active");
+  $("showCreate").disabled=true;
+  $("showJoin").classList.remove("nav-active");
+  $("showJoin").disabled=false;
+};
+$("showJoin").onclick=()=>{
+  $("joinBox").classList.remove("hidden");
+  $("createBox").classList.add("hidden");
+  $("showJoin").classList.add("nav-active");
+  $("showJoin").disabled=true;
+  $("showCreate").classList.remove("nav-active");
+  $("showCreate").disabled=false;
+};
 async function unique(){for(let i=0;i<10;i++){let c=code();if(!(await get(ref(db,"rooms/"+c))).exists())return c}throw Error("code")}
 $("create").onclick=async()=>{if(!uid)return msg("homeMsg","Firebase n'est pas prêt.","bad");if(!nick())return msg("homeMsg","Entre un pseudo.","bad");try{
 // Nettoyage des anciennes rooms en "best effort" : un refus de lecture/suppression ne doit JAMAIS bloquer la création.
