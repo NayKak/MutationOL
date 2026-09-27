@@ -1024,6 +1024,50 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   }
 }
 
+
+/* V92 — statistiques du profil encore plus compactes */
+#profileBox .profileHead{
+  grid-template-columns:auto minmax(0,1fr) minmax(155px,175px)!important;
+}
+#profileBox .profileStats{
+  width:175px!important;
+  max-width:175px!important;
+  grid-template-rows:repeat(3,28px)!important;
+  border-radius:13px!important;
+}
+#profileBox .profileStats > div{
+  min-height:28px!important;
+  height:28px!important;
+  padding:0 7px!important;
+  gap:5px!important;
+}
+#profileBox .profileStats span,
+#profileBox .profileStats b,
+#profileBox #soloPalmares{
+  font-size:9px!important;
+  line-height:1!important;
+}
+@media(max-width:480px){
+  #profileBox .profileHead{
+    grid-template-columns:58px minmax(0,1fr) 165px!important;
+  }
+  #profileBox .profileStats{
+    width:165px!important;
+    max-width:165px!important;
+    grid-template-rows:repeat(3,27px)!important;
+  }
+  #profileBox .profileStats > div{
+    min-height:27px!important;
+    height:27px!important;
+    padding:0 7px!important;
+  }
+  #profileBox .profileStats span,
+  #profileBox .profileStats b,
+  #profileBox #soloPalmares{
+    font-size:8.5px!important;
+  }
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1428,7 +1472,7 @@ function closeProfile(){
 }
 async function loadProfile(u){
   uid=u.uid;
-  console.info("Mutation Online — V91", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  console.info("Mutation Online — V92", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
