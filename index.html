@@ -2072,4 +2072,46 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   margin:0!important;
 }
 </style>
+
+<!-- V95 — centrage des info-bulles « ? » sur le viewport réellement visible (mobile inclus) -->
+<style>
+#clearErrorHelpModal .modalCard,
+#anonymousHelpModal .modalCard,
+#resetSoloHelpModal .modalCard,
+#deleteProfileHelpModal .modalCard{
+  position:fixed!important;
+  left:var(--help-center-x,50vw)!important;
+  top:var(--help-center-y,50vh)!important;
+  right:auto!important;bottom:auto!important;
+  transform:translate(-50%,-50%)!important;
+  width:min(430px,calc(100vw - 24px))!important;
+  max-width:calc(100vw - 24px)!important;
+  margin:0!important;
+}
+</style>
+<script>
+(function(){
+  const ids=['clearErrorHelpModal','anonymousHelpModal','resetSoloHelpModal','deleteProfileHelpModal'];
+  function centerHelp(){
+    const v=window.visualViewport;
+    const x=v ? v.offsetLeft + v.width/2 : window.innerWidth/2;
+    const y=v ? v.offsetTop + v.height/2 : window.innerHeight/2;
+    document.documentElement.style.setProperty('--help-center-x',x+'px');
+    document.documentElement.style.setProperty('--help-center-y',y+'px');
+  }
+  centerHelp();
+  window.addEventListener('resize',centerHelp,{passive:true});
+  window.addEventListener('orientationchange',centerHelp,{passive:true});
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize',centerHelp,{passive:true});
+    visualViewport.addEventListener('scroll',centerHelp,{passive:true});
+  }
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    new MutationObserver(()=>{if(!el.classList.contains('hidden')) requestAnimationFrame(centerHelp)}).observe(el,{attributes:true,attributeFilter:['class']});
+  });
+})();
+</script>
+
 </body></html>
