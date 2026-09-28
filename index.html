@@ -1222,6 +1222,13 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   .avatarScrollArrow{flex-basis:30px!important;width:30px!important;min-width:30px!important;height:50px!important;font-size:27px!important;}
 }
 
+
+/* V — avatar dans le classement solo */
+.rankingIdentity{display:flex;align-items:center;gap:9px;min-width:0}
+.rankingAvatar{width:34px;height:34px;flex:0 0 34px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#0a2c37;border:1px solid #ffffff22}
+.rankingAvatar img{width:100%;height:100%;object-fit:cover;display:block}
+.rankingIdentity .rankingNick{min-width:0}
+@media(max-width:460px){.rankingIdentity{gap:7px}.rankingAvatar{width:30px;height:30px;flex-basis:30px}}
 </style>
 </head>
 <body><div class="app">
@@ -1744,7 +1751,7 @@ $("saveProfile").onclick=async()=>{
       if(p.anonymousRanking){
         await remove(ref(db,"soloLeaderboard/"+uid));
       }else if(Number(p.soloBest||0)>0){
-        await set(ref(db,"soloLeaderboard/"+uid),{nick:p.nick,score:Number(p.soloBest),updatedAt:serverTimestamp()});
+        await set(ref(db,"soloLeaderboard/"+uid),{nick:p.nick,score:Number(p.soloBest),avatarId:p.avatarId||"avatar01",updatedAt:serverTimestamp()});
       }
     }
     let fresh=await get(ref(db,"profiles/"+uid));
@@ -1889,10 +1896,11 @@ async function loadSoloRanking(){
   const box=$("soloRankingList");box.innerHTML='<div class="rankingLoading">Chargement du classement…</div>';
   try{
     const snap=await get(query(ref(db,"soloLeaderboard"),orderByChild("score"),limitToLast(100)));
-    let rows=[];snap.forEach(c=>{const v=c.val()||{};if(typeof v.nick==="string"&&Number(v.score)>0)rows.push({uid:c.key,nick:v.nick,score:Number(v.score)})});
+    let rows=[];snap.forEach(c=>{const v=c.val()||{};if(typeof v.nick==="string"&&Number(v.score)>0)rows.push({uid:c.key,nick:v.nick,score:Number(v.score),avatarId:v.avatarId||null})});
+    await Promise.all(rows.map(async r=>{if(r.avatarId)return;try{const ps=await get(ref(db,"profiles/"+r.uid));if(ps.exists())r.avatarId=ps.val()?.avatarId||null}catch{}}));
     rows.sort((a,b)=>b.score-a.score||a.nick.localeCompare(b.nick,"fr",{sensitivity:"base"}));
     if(!rows.length){box.innerHTML='<div class="rankingEmpty">Aucun score solo enregistré pour le moment.</div>';return}
-    box.innerHTML=rows.map((r,i)=>{const rank=i+1,medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank+".";return `<div class="rankingRow${r.uid===uid?" me":""}"><div class="rankingPos">${medal}</div><div class="rankingNick">${esc(r.nick)}</div><div class="rankingScore">${r.score} mot${r.score>1?"s":""}</div></div>`}).join("");
+    box.innerHTML=rows.map((r,i)=>{const rank=i+1,medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank+".";const av=r.avatarId?`<span class="rankingAvatar">${avatarMarkup(r.avatarId)}</span>`:"";return `<div class="rankingRow${r.uid===uid?" me":""}"><div class="rankingPos">${medal}</div><div class="rankingIdentity">${av}<div class="rankingNick">${esc(r.nick)}</div></div><div class="rankingScore">${r.score} mot${r.score>1?"s":""}</div></div>`}).join("");
   }catch(e){console.error("Classement solo:",e);box.innerHTML='<div class="rankingEmpty bad">Impossible de charger le classement.</div>'}
 }
 $("rankingMultiTab").onclick=()=>showRankingMode("multi");
@@ -1996,6 +2004,7 @@ async function validateSoloFinish(){
         await set(ref(db,"soloLeaderboard/"+uid),{
           nick:profile.nick,
           score:best,
+          avatarId:profile.avatarId||"avatar01",
           updatedAt:serverTimestamp()
         });
       }
