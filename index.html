@@ -2185,7 +2185,7 @@ async function validateSoloFinish(){
 $("soloBtn").onclick=()=>{$("soloQuit").classList.remove("hidden");$("soloFinishBtn").onclick=validateSoloFinish;soloStartChoices()};
 $("soloFinishBtn").onclick=validateSoloFinish;
 $("soloQuit").onclick=()=>{$("soloQuitModal").classList.remove("hidden")};
-$("cancelSoloQuit").onclick=$("closeSoloQuit").onclick=()=>{$("soloQuitModal").classList.add("hidden")};
+$("cancelSoloQuit").onclick=()=>{$("soloQuitModal").classList.add("hidden")};
 $("confirmSoloQuit").onclick=()=>{
   $("soloQuitModal").classList.add("hidden");
   clearInterval(soloTick);
