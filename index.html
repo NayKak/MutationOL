@@ -1157,6 +1157,51 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   #profileBox .profileStats span,#profileBox .profileStats b,#profileBox #soloPalmares{font-size:9px!important}
 }
 
+
+/* V95 — navigation depuis les stats + rythme uniforme du profil */
+#profileBox .profileStats .statMulti,
+#profileBox .profileStats .statSolo{
+  cursor:pointer!important;
+  transition:transform .14s ease,background .14s ease,box-shadow .14s ease!important;
+}
+#profileBox .profileStats .statMulti:hover,
+#profileBox .profileStats .statSolo:hover,
+#profileBox .profileStats .statMulti:focus-visible,
+#profileBox .profileStats .statSolo:focus-visible{
+  background:#12414c!important;
+  box-shadow:0 0 0 1px #37cfe755 inset!important;
+}
+#profileBox .profileStats .statMulti:active,
+#profileBox .profileStats .statSolo:active{transform:scale(.98)!important}
+#profileBox .profileStats .statMulti:after,
+#profileBox .profileStats .statSolo:after{
+  content:'›';color:#6fddeb;font-size:14px;font-weight:900;margin-left:1px;
+}
+#profileBox .profileStats .statMulti,
+#profileBox .profileStats .statSolo{grid-template-columns:25px 1fr auto auto!important}
+
+/* Même respiration au-dessus et au-dessous de chaque séparateur. */
+#profileBox{--profile-separator-space:18px!important}
+#profileBox .profileSectionTitle,
+#existingProfileOptions > .profileSectionTitle{
+  margin:var(--profile-separator-space) 0!important;
+}
+
+/* Les actions normales forment un bloc distinct des actions de suppression. */
+#profileBox .profileMainActions{
+  margin-top:24px!important;
+  padding-top:20px!important;
+  border-top:1px solid #315364!important;
+  display:grid!important;
+  gap:14px!important;
+}
+#profileBox .profileMainActions > button{margin:0!important}
+@media(max-width:480px){
+  #profileBox .profileStats .statMulti,
+  #profileBox .profileStats .statSolo{grid-template-columns:23px 1fr auto auto!important}
+  #profileBox .profileMainActions{margin-top:22px!important;padding-top:18px!important}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1227,9 +1272,11 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
     </div>
 </div>
 
-  <button id="saveProfile" type="button">Enregistrer mon profil</button>
-  <button id="cancelProfileCreation" type="button" class="secondary hidden">← Retour</button>
-  <button id="closeProfileBtn" type="button" class="secondary">← Retour au jeu</button>
+  <div class="profileMainActions">
+    <button id="saveProfile" type="button">Enregistrer mon profil</button>
+    <button id="cancelProfileCreation" type="button" class="secondary hidden">← Retour</button>
+    <button id="closeProfileBtn" type="button" class="secondary">← Retour au jeu</button>
+  </div>
 </div>
 <div id="playActions" class="hidden">
 <div class="playerTopbar">
@@ -1685,6 +1732,23 @@ $("saveProfile").onclick=async()=>{
 $("profileShortcut").onclick=()=>{openProfile();document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"))};
 $("tabPlay").onclick=showPlayMenu;
 $("tabRank").onclick=()=>{screen("rankingPanel");showRankingMode("solo")};
+const openProfileRanking=(mode)=>{
+  closeProfile();
+  screen("rankingPanel");
+  showRankingMode(mode);
+};
+const statMulti=document.querySelector("#profileBox .profileStats .statMulti");
+const statSolo=document.querySelector("#profileBox .profileStats .statSolo");
+if(statMulti){
+  statMulti.setAttribute("role","button");statMulti.setAttribute("tabindex","0");statMulti.setAttribute("aria-label","Ouvrir le classement multijoueur");
+  statMulti.onclick=()=>openProfileRanking("multi");
+  statMulti.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openProfileRanking("multi")}};
+}
+if(statSolo){
+  statSolo.setAttribute("role","button");statSolo.setAttribute("tabindex","0");statSolo.setAttribute("aria-label","Ouvrir le classement solo");
+  statSolo.onclick=()=>openProfileRanking("solo");
+  statSolo.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openProfileRanking("solo")}};
+}
 $("rankedBtn").onclick=()=>msg("homeMsg","Les parties classées arrivent bientôt.","");
 const footerContact=$("footerContact"); if(footerContact) footerContact.onclick=()=>msg("homeMsg","Contact : à venir.","");
 $("rulesBtn").onclick=()=>$("rulesModal").classList.remove("hidden");
