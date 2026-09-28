@@ -1202,6 +1202,26 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   #profileBox .profileMainActions{margin-top:22px!important;padding-top:18px!important}
 }
 
+
+/* V97 — flèches de navigation de la liste d’avatars */
+.avatarGalleryWrap{position:relative;display:flex;align-items:center;gap:6px;width:100%;}
+#profileBox .avatarGalleryWrap .avatarGallery{flex:1 1 auto;min-width:0;scrollbar-width:none!important;scroll-behavior:smooth;}
+#profileBox .avatarGalleryWrap .avatarGallery::-webkit-scrollbar{display:none;}
+.avatarScrollArrow{
+  flex:0 0 34px!important;width:34px!important;height:54px!important;min-width:34px!important;
+  margin:0!important;padding:0!important;border-radius:17px!important;
+  display:grid!important;place-items:center!important;
+  background:#0a2c37!important;color:#bcebf3!important;border:1px solid #286275!important;
+  font-size:30px!important;line-height:1!important;font-weight:700!important;
+  box-shadow:0 4px 14px #0004;
+}
+.avatarScrollArrow:active{transform:scale(.96);background:#0d3a47!important;border-color:#49d9ef!important;}
+.avatarScrollArrow:disabled{opacity:.28!important;}
+@media(max-width:480px){
+  .avatarGalleryWrap{gap:4px;}
+  .avatarScrollArrow{flex-basis:30px!important;width:30px!important;min-width:30px!important;height:50px!important;font-size:27px!important;}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1253,7 +1273,11 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div id="nickAvailabilityMsg" class="msg hidden" style="margin:2px 0 6px;min-height:0"></div>
   <div id="nickCooldown" class="small center hidden"></div>
   <div class="profileSectionTitle">──── Avatar ────</div>
+  <div class="avatarGalleryWrap">
+  <button type="button" class="avatarScrollArrow avatarScrollLeft" id="avatarScrollLeft" aria-label="Avatars précédents">‹</button>
   <div id="avatarGallery" class="avatarGallery"></div>
+  <button type="button" class="avatarScrollArrow avatarScrollRight" id="avatarScrollRight" aria-label="Avatars suivants">›</button>
+</div>
   
 <div id="existingProfileOptions">
   <div class="profileSectionTitle">──── Préférences ────</div>
@@ -1398,7 +1422,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   </div>
   <div id="soloEnd" class="hidden">
     <div class="soloFinal">Partie terminée</div>
-    <div class="soloFinalScore"><b id="soloFinalScore">0</b> mots réussis</div>
+    <div class="soloFinalScore"><b id="soloFinalScore">0</b></div>
     <div id="soloBestMsg" class="msg"></div>
     <button id="soloFinishBtn" type="button">Terminer la partie</button>
   </div>
@@ -2220,6 +2244,32 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     if(!el)return;
     new MutationObserver(()=>{if(!el.classList.contains('hidden')) requestAnimationFrame(centerHelp)}).observe(el,{attributes:true,attributeFilter:['class']});
   });
+})();
+</script>
+
+
+<script>
+(function(){
+  function setupAvatarArrows(){
+    const g=document.getElementById('avatarGallery');
+    const left=document.getElementById('avatarScrollLeft');
+    const right=document.getElementById('avatarScrollRight');
+    if(!g||!left||!right)return;
+    const step=()=>Math.max(130,Math.round(g.clientWidth*.72));
+    left.onclick=()=>g.scrollBy({left:-step(),behavior:'smooth'});
+    right.onclick=()=>g.scrollBy({left:step(),behavior:'smooth'});
+    function update(){
+      const max=Math.max(0,g.scrollWidth-g.clientWidth);
+      left.disabled=g.scrollLeft<=2;
+      right.disabled=g.scrollLeft>=max-2;
+    }
+    g.addEventListener('scroll',update,{passive:true});
+    window.addEventListener('resize',update);
+    new MutationObserver(()=>setTimeout(update,0)).observe(g,{childList:true});
+    setTimeout(update,0);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupAvatarArrows);
+  else setupAvatarArrows();
 })();
 </script>
 
