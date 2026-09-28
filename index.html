@@ -1358,7 +1358,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   </div>
   <div class="modeDivider"><span>Partie solo</span></div>
   <div class="modeSection">
-    <button id="soloBtn" type="button" class="modeCard soloModeCard"><b>Jouer en solo</b><span id="soloHomeBest">Meilleur score : 0 mot</span></button>
+    <button id="soloBtn" type="button" class="modeCard soloModeCard"><b>Jouer en solo</b><span id="soloHomeBest">Surpasse toi dans le classement solo</span></button>
   </div>
 </div>
 <div id="createBox" class="hidden">
@@ -1620,7 +1620,7 @@ function refreshProfileEditor(){
   let canNick=!existing||!t||now()-t>=NICK_DELAY;
   $("nick").disabled=existing&&!canNick;
   $("nickCooldown").textContent=existing?nickWaitText():"Le pseudo sera ensuite modifiable une fois tous les 30 jours.";
-  $("nickCooldown").classList.toggle("ok",existing&&canNick);let sb=Number(profile?.soloBest||0);$("soloPalmares").textContent=`${Number(profile?.soloBest||0)} mot${Number(profile?.soloBest||0)>1?"s":""}`;$("soloHomeBest").textContent=`Meilleur score : ${sb} mot${sb>1?"s":""}`;
+  $("nickCooldown").classList.toggle("ok",existing&&canNick);let sb=Number(profile?.soloBest||0);$("soloPalmares").textContent=`${Number(profile?.soloBest||0)} mot${Number(profile?.soloBest||0)>1?"s":""}`;$("soloHomeBest").textContent="Surpasse toi dans le classement solo";
   $("saveProfile").textContent=existing?"Enregistrer les modifications":"Enregistrer mon profil";
   $("existingProfileOptions").classList.toggle("hidden",!existing);
   $("cancelProfileCreation").classList.toggle("hidden",existing);
