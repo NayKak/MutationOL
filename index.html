@@ -2035,7 +2035,11 @@ async function validateSoloFinish(){
     /* V55 : on enregistre d'abord le record privé, puis le classement.
        Les règles du classement peuvent ainsi vérifier le soloBest déjà enregistré. */
     if(score>oldBest){
-      await update(ref(db,"profiles/"+uid),{soloBest:score});
+      // Un invité n'a volontairement aucun profil Firebase :
+      // son score solo reste local à la session et ne doit provoquer aucune écriture /profiles.
+      if(isRegistered){
+        await update(ref(db,"profiles/"+uid),{soloBest:score});
+      }
       profile={...profile,soloBest:score};
     }
 
