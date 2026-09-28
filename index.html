@@ -1571,6 +1571,7 @@ async function pruneHostedRooms(keepCode){if(!uid||!keepCode||lastPrunedFor===ke
 
 const AVATARS=Array.from({length:100},(_,i)=>`avatar${String(i+1).padStart(2,"0")}`);
 const AVATAR_IMAGES={
+  avatar00:"avatars/avatar00.png",
   avatar01:"avatars/avatar01.png",
   avatar02:"avatars/avatar02.png",
   avatar03:"avatars/avatar03.png"
@@ -1672,6 +1673,19 @@ function closeProfile(){
 async function loadProfile(u){
   uid=u.uid;
   console.info("Mutation Online — V93", {provider:u.providerData?.[0]?.providerId||"unknown", anonymous:u.isAnonymous});
+  // Les sessions anonymes sont temporaires : elles utilisent toutes la même identité
+  // et ne créent ni profil ni réservation de pseudo dans Firebase.
+  if(u.isAnonymous){
+    profile={nick:"Invité(e)",avatarId:"avatar00",soloBest:0,clearOnError:false,anonymousRanking:true};
+    selectedAvatar="avatar00";
+    $("accountType").textContent=providerLabel(u);
+    $("authBox").classList.add("hidden");
+    $("profileBox").classList.add("hidden");
+    $("playActions").classList.remove("hidden");
+    $("profileName").textContent=profile.nick;
+    syncMenuIdentity();
+    return;
+  }
   let snap=await get(ref(db,"profiles/"+uid));
   profile=snap.exists()?snap.val():null;
   selectedAvatar=profile?.avatarId||"avatar01";
@@ -1684,12 +1698,7 @@ async function loadProfile(u){
   }else{
     $("playActions").classList.add("hidden");
     openProfile();
-    if(u.isAnonymous){
-      $("closeProfileBtn").textContent="← Retour";
-      $("closeProfileBtn").classList.remove("hidden");
-    }else{
-      $("closeProfileBtn").classList.add("hidden");
-    }
+    $("closeProfileBtn").classList.add("hidden");
   }
 }
 async function loginProvider(provider){
@@ -1791,7 +1800,7 @@ $("saveProfile").onclick=async()=>{
     if(status){status.textContent=e?.message||"Impossible d’enregistrer.";status.classList.remove("hidden")}
   }finally{ btn.disabled=false; }
 };
-$("profileShortcut").onclick=()=>{openProfile();document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"))};
+$("profileShortcut").onclick=()=>{if(auth.currentUser?.isAnonymous)return;openProfile();document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"))};
 $("tabPlay").onclick=showPlayMenu;
 $("tabRank").onclick=()=>{screen("rankingPanel");showRankingMode("solo")};
 const openProfileRanking=(mode)=>{
