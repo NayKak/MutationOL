@@ -1768,7 +1768,12 @@ function openProfile(){
   $("profileBox").classList.remove("hidden");
 }
 function syncMenuIdentity(){if(!profile)return;$("menuNick").textContent=profile.nick;$("menuAvatar").innerHTML=avatarMarkup(profile.avatarId)}
-function showPlayMenu(){$("tabPlay").disabled=false;closeProfile();$("playMenu").classList.remove("hidden");$("createBox").classList.add("hidden");$("joinBox").classList.add("hidden");document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));$("tabPlay").classList.add("active")}
+function privateSetupTabs(on){
+  $("tabPlay").classList.toggle("hidden",on);
+  $("tabRank").classList.toggle("hidden",on);
+  $("rulesBtn").classList.remove("hidden");
+}
+function showPlayMenu(){privateSetupTabs(false);$("tabPlay").disabled=false;closeProfile();$("playMenu").classList.remove("hidden");$("createBox").classList.add("hidden");$("joinBox").classList.add("hidden");document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));$("tabPlay").classList.add("active")}
 function closeProfile(){
   if(!profile)return;
   $("profileBox").classList.add("hidden");
@@ -2266,7 +2271,7 @@ $("soloForm").onsubmit=e=>{
   $("soloAnswer").value="";msg("soloMsg","","");showValidCheck("soloValidCheck");renderSolo();refocusInput("soloAnswer");
 };
 
-$("showCreate").onclick=()=>{$("tabPlay").disabled=true;$("tabPlay").classList.remove("active");$("playMenu").classList.add("hidden");
+$("showCreate").onclick=()=>{privateSetupTabs(true);$("tabPlay").disabled=true;$("tabPlay").classList.remove("active");$("playMenu").classList.add("hidden");
   $("createBox").classList.remove("hidden");
   $("joinBox").classList.add("hidden");
   $("showCreate").classList.add("nav-active");
@@ -2274,7 +2279,7 @@ $("showCreate").onclick=()=>{$("tabPlay").disabled=true;$("tabPlay").classList.r
   $("showJoin").classList.remove("nav-active");
   $("showJoin").disabled=false;
 };
-$("showJoin").onclick=()=>{$("tabPlay").disabled=true;$("tabPlay").classList.remove("active");$("playMenu").classList.add("hidden");
+$("showJoin").onclick=()=>{privateSetupTabs(true);$("tabPlay").disabled=true;$("tabPlay").classList.remove("active");$("playMenu").classList.add("hidden");
   $("joinBox").classList.remove("hidden");
   $("createBox").classList.add("hidden");
   $("showJoin").classList.add("nav-active");
@@ -2283,6 +2288,7 @@ $("showJoin").onclick=()=>{$("tabPlay").disabled=true;$("tabPlay").classList.rem
   $("showCreate").disabled=false;
 };
 $("backFromCreate").onclick=()=>{
+  privateSetupTabs(false);
   $("createBox").classList.add("hidden");
   $("joinBox").classList.add("hidden");
   $("playMenu").classList.remove("hidden");
@@ -2304,6 +2310,7 @@ try{
 clearSession();room=null;roomCode=null;lastPrunedFor="";
 roomCode=await unique();let t=now();await set(ref(db,"rooms/"+roomCode),{host:uid,status:"lobby",players:{p1:{uid,nick:nick(),avatarId:profile.avatarId,lives:3,online:true,lastSeen:t}},createdAt:t,lastActivity:t,deleteAfter:t+TTL});subscribe(roomCode)}catch(e){console.error("Création Firebase :",e);msg("homeMsg","Création impossible — "+(e?.code||e?.message||"erreur inconnue"),"bad")}};
 $("backFromJoin").onclick=()=>{
+  privateSetupTabs(false);
   $("joinBox").classList.add("hidden");
   $("createBox").classList.add("hidden");
   $("playMenu").classList.remove("hidden");
