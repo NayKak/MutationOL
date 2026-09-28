@@ -2036,4 +2036,40 @@ $('nextRound').onclick=async()=>{if(room?.status!=='roundEnd')return;let me=slot
 async function abandon(op){let c=roomCode;if(!c)return;await runTransaction(ref(db,"rooms/"+c),d=>{if(!d||d.players?.[op]?.online!==false||now()-(d.players[op].lastSeen||now())<GRACE)return;return null})}
 $("form").onsubmit=async e=>{e.preventDefault();let me=slot(),g=room?.game,w=norm($("answer").value),state=room?.status;if(!w||!["opening","playing"].includes(state)||(state==="playing"&&me!==g.turn))return;if(hist(g).some(x=>key(x.word)===key(w))){msg("gameMsg","Mot déjà joué.","bad");clearErroredInput("answer");return}if(!mutation(g.current,w)){msg("gameMsg","Ajoute, retire ou remplace exactement une lettre.","bad");refocusInput("answer");return}if(!dictReady||!WORDS.has(key(w))){msg("gameMsg",dictReady?"Mot absent du dictionnaire.":"Dictionnaire non chargé.","bad");clearErroredInput("answer");return}w=WORD_FORM.get(key(w))||w;let cur=g.current,seq=g.seq||0,res=await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||!["opening","playing"].includes(d.status)||d.game.current!==cur||(d.game.seq||0)!==seq||(d.status==="playing"&&d.game.turn!==me)||hist(d.game).some(x=>key(x.word)===key(w)))return;let n=seq+1;d.game.current=w;d.game.seq=n;d.game.totalWords=(d.game.totalWords||0)+1;d.game.history=d.game.history||{};d.game.history[n]={seq:n,word:w,by:me,at:now()};d.status="playing";d.game.turn=other(me);d.game.turnStartedAt=now();d.game.message="";d.lastActivity=now();d.deleteAfter=now()+TTL;return d});if(res.committed){$("answer").value="";showValidCheck("gameValidCheck");refocusInput("answer")}};
 async function leave(){let c=roomCode,me=slot();if(!c||!me)return screen("home");if(!confirm("Êtes-vous sûr(e) de vouloir quitter ?"))return;let r=ref(db,"rooms/"+c);leaving=true;if(unsub){unsub();unsub=null}clearSession();roomCode=null;try{await presenceTask}catch{}try{if(disc){await disc.cancel();disc=null}await remove(r)}catch(e){leaving=false;roomCode=c;subscribe(c);return msg(room?.status==="lobby"?"lobbyMsg":"gameMsg","Impossible de supprimer la salle : "+(e?.code||e?.message||"erreur Firebase"),"bad")}room=null;clearInterval(tick);screen("home");msg("homeMsg","Tu as quitté la salle.","ok")}
-$("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=async()=>{if(room?.status!=="finished")return;let me=slot();await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||d.status!=="finished"||!d.players?.p2)return;d.game=d.game||{};d.game.replayVotes=d.game.replayVotes||{};d.game.replayVotes[me]=true;if(d.game.replayVotes.p1&&d.game.replayVotes.p2){let a=starts();if(a.length<3)return;d.players.p1.lives=d.players.p2.lives=3;d.status="voting";d.game={round:1,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:"",voteStartedAt:now()};d.lastActivity=now();d.deleteAfter=now()+TTL}return d})};</script></body></html>
+$("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=async()=>{if(room?.status!=="finished")return;let me=slot();await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||d.status!=="finished"||!d.players?.p2)return;d.game=d.game||{};d.game.replayVotes=d.game.replayVotes||{};d.game.replayVotes[me]=true;if(d.game.replayVotes.p1&&d.game.replayVotes.p2){let a=starts();if(a.length<3)return;d.players.p1.lives=d.players.p2.lives=3;d.status="voting";d.game={round:1,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:"",voteStartedAt:now()};d.lastActivity=now();d.deleteAfter=now()+TTL}return d})};</script>
+
+<!-- V94 — correction uniquement du centrage des info-bulles « ? » -->
+<style>
+#clearErrorHelpModal,
+#anonymousHelpModal,
+#resetSoloHelpModal,
+#deleteProfileHelpModal{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100dvh!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:16px!important;
+  box-sizing:border-box!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#clearErrorHelpModal:not(.hidden),
+#anonymousHelpModal:not(.hidden),
+#resetSoloHelpModal:not(.hidden),
+#deleteProfileHelpModal:not(.hidden){display:flex!important}
+#clearErrorHelpModal .modalCard,
+#anonymousHelpModal .modalCard,
+#resetSoloHelpModal .modalCard,
+#deleteProfileHelpModal .modalCard{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  margin:0!important;
+}
+</style>
+</body></html>
