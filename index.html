@@ -1742,9 +1742,15 @@ $("saveProfile").onclick=async()=>{
     try{ await set(ref(db,"profiles/"+uid),p); }
     catch(e){ if(nickChanged&&(!oldKey||oldKey!==newKey)) try{await remove(ref(db,"nicknames/"+newKey))}catch{} throw e; }
     if(nickChanged&&oldKey&&oldKey!==newKey) try{await remove(ref(db,"nicknames/"+oldKey))}catch{}
+    // Le profil est déjà enregistré à ce stade. La synchro du classement est secondaire :
+    // une règle Firebase trop restrictive sur soloLeaderboard ne doit jamais annuler l'enregistrement du profil.
     if(!auth.currentUser?.isAnonymous){
-      if(p.anonymousRanking) await remove(ref(db,"soloLeaderboard/"+uid));
-      else if(p.soloBest>0) await set(ref(db,"soloLeaderboard/"+uid),{nick:v,score:p.soloBest,avatarId:selectedAvatar,updatedAt:serverTimestamp()});
+      try{
+        if(p.anonymousRanking) await remove(ref(db,"soloLeaderboard/"+uid));
+        else if(p.soloBest>0) await set(ref(db,"soloLeaderboard/"+uid),{nick:v,score:p.soloBest,avatarId:selectedAvatar,updatedAt:serverTimestamp()});
+      }catch(rankErr){
+        console.warn("Synchronisation classement solo ignorée :",rankErr);
+      }
     }
     const fresh=await get(ref(db,"profiles/"+uid));
     profile=fresh.val()||{...p,updatedAt:Date.now()};
@@ -2311,5 +2317,21 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 #profileBox .avatarChoice.selected::after{border-color:#63ef55;box-shadow:0 0 0 2px rgba(99,239,85,.28),0 0 16px rgba(99,239,85,.20)}
 #profileBox .avatarChoice img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;display:block!important}
 #saveProfile:disabled{opacity:.7;cursor:wait}
+</style>
+
+<style>
+/* V fix — anneau de sélection uniforme, légèrement plus petit, indépendant de l'image */
+#profileBox .avatarChoice::after{
+  inset:5px!important;
+  border-width:3px!important;
+  border-style:solid!important;
+  border-color:transparent!important;
+  border-radius:50%!important;
+  box-sizing:border-box!important;
+}
+#profileBox .avatarChoice.selected::after{
+  border-color:#63ef55!important;
+  box-shadow:0 0 0 1px rgba(99,239,85,.25),0 0 10px rgba(99,239,85,.18)!important;
+}
 </style>
 </body></html>
