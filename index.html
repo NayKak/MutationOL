@@ -1717,57 +1717,47 @@ $("editNickBtn").onclick=()=>{
 };
 $("nick").addEventListener("input",()=>{const n=$("nickAvailabilityMsg");if(n){n.textContent="";n.className="msg hidden"}});
 $("saveProfile").onclick=async()=>{
-  let old=profile;
-  let v=$("nick").value.trim();
-  if(!validNick(v))return msg("homeMsg","Pseudo : 2 à 12 caractères, lettres et chiffres uniquement.","bad");
-  let nickChanged=!old||v!==old.nick;
-  if(nickChanged && !(await pseudoDisponible(v))){
-    const nm=$("nickAvailabilityMsg");
-    nm.textContent="Ce pseudo est déjà utilisé. Choisis-en un autre.";
-    nm.className="msg bad";
-    $("nick").focus();
-    return;
-  }
-  const nm=$("nickAvailabilityMsg");if(nm){nm.textContent="";nm.className="msg hidden"}
-  let last=Number(old?.nickChangedAt||old?.updatedAt||0);
-  if(old&&nickChanged&&last&&now()-last<NICK_DELAY)return msg("homeMsg",nickWaitText(),"bad");
+  const btn=$("saveProfile");
+  const status=$("profileSaveStatus");
+  const old=profile;
+  const v=$("nick").value.trim();
+  if(!validNick(v)){ if(status){status.textContent="Pseudo invalide.";status.classList.remove("hidden")} return; }
+  const nickChanged=!old||v!==old.nick;
+  btn.disabled=true;
+  if(status){status.textContent="Enregistrement…";status.classList.remove("hidden")}
   try{
-    let p={
-      nick:v,
-      avatarId:selectedAvatar,
-      updatedAt:serverTimestamp(),
+    if(nickChanged){
+      if(!(await pseudoDisponible(v))) throw new Error("Ce pseudo est déjà utilisé.");
+      const last=Number(old?.nickChangedAt||old?.updatedAt||0);
+      if(old&&last&&now()-last<NICK_DELAY) throw new Error(nickWaitText());
+    }
+    const p={
+      nick:v, avatarId:selectedAvatar, updatedAt:serverTimestamp(),
       nickChangedAt:nickChanged?serverTimestamp():(old?.nickChangedAt||old?.updatedAt||serverTimestamp()),
-      soloBest:Number(old?.soloBest||0),
-      clearOnError:$("clearOnError").checked,
+      soloBest:Number(old?.soloBest||0), clearOnError:$("clearOnError").checked,
       anonymousRanking:$("anonymousRanking").checked
     };
-    const newNickKey=nickKey(p.nick),oldNickKey=old?.nick?nickKey(old.nick):null;
-    await set(ref(db,"nicknames/"+newNickKey),uid);
-    try{
-      await set(ref(db,"profiles/"+uid),p);
-    }catch(e){
-      if(!oldNickKey || oldNickKey!==newNickKey)try{await remove(ref(db,"nicknames/"+newNickKey))}catch{}
-      throw e;
-    }
-    if(oldNickKey && oldNickKey!==newNickKey)try{await remove(ref(db,"nicknames/"+oldNickKey))}catch{}
+    const newKey=nickKey(v), oldKey=old?.nick?nickKey(old.nick):null;
+    if(nickChanged) await set(ref(db,"nicknames/"+newKey),uid);
+    try{ await set(ref(db,"profiles/"+uid),p); }
+    catch(e){ if(nickChanged&&(!oldKey||oldKey!==newKey)) try{await remove(ref(db,"nicknames/"+newKey))}catch{} throw e; }
+    if(nickChanged&&oldKey&&oldKey!==newKey) try{await remove(ref(db,"nicknames/"+oldKey))}catch{}
     if(!auth.currentUser?.isAnonymous){
-      if(p.anonymousRanking){
-        await remove(ref(db,"soloLeaderboard/"+uid));
-      }else if(Number(p.soloBest||0)>0){
-        await set(ref(db,"soloLeaderboard/"+uid),{nick:p.nick,score:Number(p.soloBest),avatarId:p.avatarId||"avatar01",updatedAt:serverTimestamp()});
-      }
+      if(p.anonymousRanking) await remove(ref(db,"soloLeaderboard/"+uid));
+      else if(p.soloBest>0) await set(ref(db,"soloLeaderboard/"+uid),{nick:v,score:p.soloBest,avatarId:selectedAvatar,updatedAt:serverTimestamp()});
     }
-    let fresh=await get(ref(db,"profiles/"+uid));
-    profile=fresh.val();
-    $("profileName").textContent=profile.nick;syncMenuIdentity();
+    const fresh=await get(ref(db,"profiles/"+uid));
+    profile=fresh.val()||{...p,updatedAt:Date.now()};
+    profile.avatarId=selectedAvatar;
+    $("profileName").textContent=profile.nick;
+    $("profileAvatar").innerHTML=avatarMarkup(selectedAvatar);
     try{localStorage.setItem(NICK_KEY,profile.nick)}catch{}
-    $("closeProfileBtn").classList.remove("hidden");
-    $("profileAvatar").innerHTML=avatarMarkup(profile.avatarId||selectedAvatar);
-    renderAvatarGallery();
-    const saveStatus=$("profileSaveStatus");
-    if(saveStatus){saveStatus.textContent="Modifications enregistrées ✓";saveStatus.classList.remove("hidden");setTimeout(()=>saveStatus.classList.add("hidden"),2200)}
-    msg("homeMsg","Profil enregistré.","ok");
-  }catch(e){console.error("Enregistrement profil:",e);msg("homeMsg","Impossible d’enregistrer le profil — "+(e?.code||"erreur"),"bad")}
+    syncMenuIdentity(); renderAvatarGallery(); refreshProfileEditor();
+    if(status){status.textContent="Modifications enregistrées ✓";status.classList.remove("hidden")}
+  }catch(e){
+    console.error("Enregistrement profil:",e);
+    if(status){status.textContent=e?.message||"Impossible d’enregistrer.";status.classList.remove("hidden")}
+  }finally{ btn.disabled=false; }
 };
 $("profileShortcut").onclick=()=>{openProfile();document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"))};
 $("tabPlay").onclick=showPlayMenu;
@@ -2294,8 +2284,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   else setupAvatarArrows();
 })();
 </script>
-<script>
-/* Avatars — suppression automatique des marges transparentes.\n   Tous les avatars actuels et futurs remplissent ainsi le cercle sans réglage individuel. */\n(function(){\n  const cache=new Map();\n  function cropTransparent(src){\n    if(cache.has(src)) return cache.get(src);\n    const promise=new Promise(resolve=>{\n      const im=new Image();\n      im.onload=()=>{\n        try{\n          const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight;\n          const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0);\n          const d=x.getImageData(0,0,c.width,c.height).data;\n          let minX=c.width,minY=c.height,maxX=-1,maxY=-1;\n          for(let yy=0;yy<c.height;yy++) for(let xx=0;xx<c.width;xx++){\n            if(d[(yy*c.width+xx)*4+3]>12){\n              if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy;\n            }\n          }\n          if(maxX<0){resolve(src);return}\n          const w=maxX-minX+1,h=maxY-minY+1,size=Math.max(w,h);\n          const cx=(minX+maxX)/2,cy=(minY+maxY)/2;\n          let sx=Math.round(cx-size/2),sy=Math.round(cy-size/2);\n          sx=Math.max(0,Math.min(c.width-size,sx)); sy=Math.max(0,Math.min(c.height-size,sy));\n          const out=document.createElement('canvas');out.width=size;out.height=size;\n          out.getContext('2d').drawImage(c,sx,sy,size,size,0,0,size,size);\n          resolve(out.toDataURL('image/png'));\n        }catch(e){resolve(src)}\n      };\n      im.onerror=()=>resolve(src); im.src=src;\n    });\n    cache.set(src,promise); return promise;\n  }\n  async function fit(img){\n    if(!img || img.dataset.autoAvatarFit==='1')return;\n    const src=img.currentSrc||img.src;if(!src||!src.startsWith('data:image/'))return;\n    img.dataset.autoAvatarFit='1';\n    const cropped=await cropTransparent(src);\n    if(cropped!==src)img.src=cropped;\n  }\n  function scan(root=document){\n    root.querySelectorAll?.('.avatarChoice img,.avatarMini img,.avatarGame img,.rankingAvatar img').forEach(fit);\n    if(root.matches?.('.avatarChoice img,.avatarMini img,.avatarGame img,.rankingAvatar img'))fit(root);\n  }\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>scan());else scan();\n  new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)scan(n)}))).observe(document.documentElement,{childList:true,subtree:true});\n})();\n</script>\n
+\n
 
 <style>
 /* V100 — cercle de sélection strictement identique pour tous les avatars */
@@ -2313,5 +2302,14 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;border-radius:50%!important;
 }
 #profileSaveStatus{margin:10px 0 0;text-align:center;font-weight:800;color:var(--ok)}
+</style>
+
+<style>
+/* Cercle de sélection indépendant de l’image : diamètre/épaisseur identiques pour tous. */
+#profileBox .avatarChoice{position:relative!important;border:0!important;box-shadow:none!important;overflow:visible!important;padding:4px!important;background:transparent!important}
+#profileBox .avatarChoice::after{content:"";position:absolute;inset:0;border:4px solid transparent;border-radius:50%;box-sizing:border-box;pointer-events:none}
+#profileBox .avatarChoice.selected::after{border-color:#63ef55;box-shadow:0 0 0 2px rgba(99,239,85,.28),0 0 16px rgba(99,239,85,.20)}
+#profileBox .avatarChoice img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;display:block!important}
+#saveProfile:disabled{opacity:.7;cursor:wait}
 </style>
 </body></html>
