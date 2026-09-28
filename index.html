@@ -1112,6 +1112,51 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   }
 }
 
+
+/* V94 — bloc classement plus lisible et ergonomique */
+#profileBox .profileStats{
+  width:184px!important;max-width:184px!important;
+  display:grid!important;grid-template-rows:repeat(3,auto)!important;
+  gap:6px!important;padding:6px!important;
+  border:1px solid #2a6878!important;border-radius:17px!important;
+  background:linear-gradient(145deg,#0b2730,#081d25)!important;
+  box-shadow:0 8px 22px #0004, inset 0 1px 0 #ffffff0b!important;
+  overflow:visible!important;
+}
+#profileBox .profileStats > div{
+  height:31px!important;min-height:31px!important;
+  display:grid!important;grid-template-columns:25px 1fr auto!important;
+  align-items:center!important;gap:6px!important;
+  padding:0 8px 0 5px!important;
+  border:0!important;border-radius:10px!important;
+  background:#0d323c!important;
+}
+#profileBox .profileStats > div + div{border-top:0!important}
+#profileBox .profileStats > div:before{
+  width:22px;height:22px;border-radius:8px;display:grid;place-items:center;
+  background:#143f49;color:#8feeff;font-size:12px;font-weight:900;line-height:1;
+}
+#profileBox .profileStats .statMulti:before{content:'M'}
+#profileBox .profileStats .statSolo:before{content:'S'}
+#profileBox .profileStats .statBest:before{content:'★';color:#74ef70}
+#profileBox .profileStats span{
+  font-size:10px!important;font-weight:650!important;line-height:1!important;
+  color:#9ebac2!important;white-space:nowrap!important;
+}
+#profileBox .profileStats b,#profileBox #soloPalmares{
+  font-size:10px!important;font-weight:900!important;line-height:1!important;
+  color:#eafcff!important;white-space:nowrap!important;text-align:right!important;
+}
+#profileBox .profileStats .statMulti b{color:#72ef78!important}
+#profileBox .profileStats .statBest b,#profileBox #soloPalmares{color:#72ef78!important}
+@media(max-width:480px){
+  #profileBox .profileHead{grid-template-columns:58px minmax(0,1fr) auto!important}
+  #profileBox .profileStats{width:174px!important;max-width:174px!important;padding:5px!important;gap:5px!important}
+  #profileBox .profileStats > div{height:29px!important;min-height:29px!important;grid-template-columns:23px 1fr auto!important;padding:0 6px 0 4px!important;gap:5px!important}
+  #profileBox .profileStats > div:before{width:20px;height:20px;border-radius:7px;font-size:11px}
+  #profileBox .profileStats span,#profileBox .profileStats b,#profileBox #soloPalmares{font-size:9px!important}
+}
+
 </style>
 </head>
 <body><div class="app">
@@ -1149,9 +1194,9 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <div id="profileAvatar" class="avatarMini">01</div>
   <div><b id="profileName">Profil joueur</b><div id="accountType" class="small"></div></div>
   <div class="profileStats">
-  <div><span>Classement multi :</span><b id="profileMultiRank">À venir</b></div>
-  <div><span>Classement solo :</span><b id="profileSoloRank">—</b></div>
-  <div><span>Meilleur score :</span><b id="soloPalmares">0 mot</b></div>
+  <div class="statMulti"><span>Multi</span><b id="profileMultiRank">À venir</b></div>
+  <div class="statSolo"><span>Solo</span><b id="profileSoloRank">—</b></div>
+  <div class="statBest"><span>Record</span><b id="soloPalmares">0 mot</b></div>
 </div>
 </div>
   <div class="profileSectionTitle">──── Pseudo ────</div>
