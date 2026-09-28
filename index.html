@@ -2235,6 +2235,10 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   max-width:calc(100vw - 24px)!important;
   margin:0!important;
 }
+
+/* Avatars — cadrage uniforme automatique */
+.avatarChoice{overflow:hidden!important;padding:0!important}
+.avatarChoice img,.avatarMini img,.avatarGame img,.rankingAvatar img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;display:block!important;border-radius:50%!important}
 </style>
 <script>
 (function(){
