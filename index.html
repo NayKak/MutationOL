@@ -1899,7 +1899,6 @@ async function loadSoloRanking(){
   try{
     const snap=await get(query(ref(db,"soloLeaderboard"),orderByChild("score"),limitToLast(100)));
     let rows=[];snap.forEach(c=>{const v=c.val()||{};if(typeof v.nick==="string"&&Number(v.score)>0)rows.push({uid:c.key,nick:v.nick,score:Number(v.score),avatarId:v.avatarId||null})});
-    await Promise.all(rows.map(async r=>{if(r.avatarId)return;try{const ps=await get(ref(db,"profiles/"+r.uid));if(ps.exists())r.avatarId=ps.val()?.avatarId||null}catch{}}));
     rows.sort((a,b)=>b.score-a.score||a.nick.localeCompare(b.nick,"fr",{sensitivity:"base"}));
     if(!rows.length){box.innerHTML='<div class="rankingEmpty">Aucun score solo enregistré pour le moment.</div>';return}
     box.innerHTML=rows.map((r,i)=>{const rank=i+1,medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank+".";const av=r.avatarId?`<span class="rankingAvatar">${avatarMarkup(r.avatarId)}</span>`:"";return `<div class="rankingRow${r.uid===uid?" me":""}"><div class="rankingPos">${medal}</div><div class="rankingIdentity">${av}<div class="rankingNick">${esc(r.nick)}</div></div><div class="rankingScore">${r.score} mot${r.score>1?"s":""}</div></div>`}).join("");
@@ -2332,6 +2331,49 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 #profileBox .avatarChoice.selected::after{
   border-color:#63ef55!important;
   box-shadow:0 0 0 1px rgba(99,239,85,.25),0 0 10px rgba(99,239,85,.18)!important;
+}
+</style>
+
+<style>
+/* V102 — avatar profil sans cercle + sélection avatar avec un seul anneau propre */
+#profileAvatar.avatarMini{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+#profileAvatar.avatarMini img{
+  width:100%!important;height:100%!important;object-fit:cover!important;
+  border:0!important;box-shadow:none!important;border-radius:50%!important;
+}
+#profileBox .avatarChoice{
+  position:relative!important;
+  padding:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  overflow:visible!important;
+}
+#profileBox .avatarChoice::after{
+  content:""!important;
+  position:absolute!important;
+  inset:-3px!important;
+  border:3px solid transparent!important;
+  border-radius:50%!important;
+  box-sizing:border-box!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+}
+#profileBox .avatarChoice.selected{
+  border:0!important;outline:0!important;box-shadow:none!important;
+}
+#profileBox .avatarChoice.selected::after{
+  border-color:#63ef55!important;
+  box-shadow:none!important;
+}
+#profileBox .avatarChoice img{
+  border:0!important;outline:0!important;box-shadow:none!important;
 }
 </style>
 </body></html>
