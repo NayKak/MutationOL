@@ -1572,7 +1572,7 @@ const AVATAR_IMAGES={
 const avatarUrl=id=>AVATAR_IMAGES[id]||"";
 function avatarMarkup(id){let u=avatarUrl(id);return u?`<img src="${u}" alt="">`:(id||"avatar01").replace("avatar","")}
 function renderAvatarGallery(){let g=$("avatarGallery");g.innerHTML="";for(let id of AVATARS){let b=document.createElement("button");b.type="button";b.className="avatarChoice"+(id===selectedAvatar?" selected":"");b.dataset.avatar=id;b.innerHTML=avatarMarkup(id);b.onclick=()=>{selectedAvatar=id;const st=$("profileSaveStatus");if(st)st.classList.add("hidden");renderAvatarGallery();$("profileAvatar").innerHTML=avatarMarkup(id)};g.appendChild(b)}}
-function validNick(v){return /^[A-Za-z0-9]{2,12}$/.test(v)}
+function validNick(v){return /^[A-Za-zÀ-ÖØ-öø-ÿŒœŸ0-9]{2,12}$/.test(v)}
 function providerLabel(u){if(u?.isAnonymous)return"Compte invité";let p=u?.providerData?.[0]?.providerId;return p==="google.com"?"Compte Google":p==="facebook.com"?"Compte Facebook":"Compte connecté"}
 const NICK_DELAY=30*24*60*60*1000;
 function nickWaitText(){
