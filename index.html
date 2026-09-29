@@ -2620,7 +2620,6 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   else setupAvatarArrows();
 })();
 </script>
-\n
 
 <style>
 /* V100 — cercle de sélection strictement identique pour tous les avatars */
@@ -2826,7 +2825,6 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     <div id="betaStorePanel" class="betaPanel hidden">
       <div class="betaBox betaDirectWheelBox"><p>Remporte des cadeaux en tournant la roue.</p>
         <div class="betaWheelWrap"><div class="betaWheelPointer"></div><div id="betaRarityWheel" class="betaRarityWheel"><span class="betaWheelGift g0">🎁</span><span class="betaWheelGift g1">🎁</span><span class="betaWheelGift g2">🎁</span><span class="betaWheelGift g3">🎁</span><div class="betaWheelHub"></div></div></div>
-        <div class="betaWheelLegend"><div class="rar-common">Commun</div><div class="rar-rare">Rare</div><div class="rar-epic">Épique</div><div class="rar-legendary">Légendaire</div></div>
         <div id="betaWheelResult" class="betaWheelResult"></div><button id="betaWheelSpin" type="button">Tourner — 100 🪙</button>
       </div>
       <h3 style="margin-top:18px">Inventaire</h3><div id="betaInventory" class="betaInventory"></div>
@@ -2891,15 +2889,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   };
   const active=()=>BETA_NICKS.has(betaNick().toLowerCase());
   let rolling=false,colorWheelRolling=false,wheelRotation=0;
-  function startKey(){return "mutation_beta_50000_both_granted_v7_"+betaNick().toLowerCase()}
+  function startKey(){return "mutation_beta_50000_both_granted_v8_"+betaNick().toLowerCase()}
   function ensureBetaStart(){
     if(!active())return;
     const k=startKey();
     if(localStorage.getItem(k)!=="1"){
-      // Migration v7 : attribution via menuNick / champ pseudo / titre profil pour éviter les faux négatifs.
-      // Laping et Lionus reçoivent 50 000 de chaque monnaie une seule fois sur cette version.
-      localStorage.setItem(K.coins,"50000");
-      localStorage.setItem(K.words,"50000");
+      // Migration v8 : si une ancienne bêta a laissé 15 000, on remonte réellement
+      // chaque solde à au moins 50 000, puis on ne réattribue plus cette prime.
+      localStorage.setItem(K.coins,String(Math.max(50000,getN(K.coins))));
+      localStorage.setItem(K.words,String(Math.max(50000,getN(K.words))));
       localStorage.setItem(k,"1");
     }
   }
