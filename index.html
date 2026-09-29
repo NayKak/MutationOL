@@ -2987,7 +2987,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     {id:"zebra",name:"Zèbre",rarity:"Épique",kind:"alternate",colors:["#fff","#111"]},{id:"ladybug",name:"Coccinelle",rarity:"Épique",kind:"alternate",colors:["#f04444","#111"]},{id:"tiger",name:"Tigre",rarity:"Épique",kind:"alternate",colors:["#ff8a25","#111"]},{id:"bee",name:"Abeille",rarity:"Épique",kind:"alternate",colors:["#ffd92f","#111"]},{id:"peacock",name:"Paon",rarity:"Épique",kind:"alternate",colors:["#3197e6","#35c96b"]},{id:"lion",name:"Lion",rarity:"Épique",kind:"alternate",colors:["#c99a6b","#71472c"]},{id:"flamingo",name:"Flamant rose",rarity:"Épique",kind:"alternate",colors:["#ff9fca","#c74782"]},{id:"dinosaur",name:"Dinosaure",rarity:"Épique",kind:"alternate",colors:["#78e889","#267f38"]},{id:"clownfish",name:"Poisson Clown",rarity:"Épique",kind:"alternate",colors:["#ff8a25","#fff"]},{id:"phoenix",name:"Phoenix",rarity:"Épique",kind:"alternate",colors:["#f04444","#ff8a25"]},{id:"albino",name:"Albinos",rarity:"Épique",kind:"alternate",colors:["#fff","#ef4b55"]},{id:"dolphin",name:"Dauphin",rarity:"Épique",kind:"alternate",colors:["#459be6","#fff"]},
     {id:"parrot",name:"Perroquet Arc-en-ciel",rarity:"Légendaire",kind:"rainbow",colors:["#ff4d4d","#ff9a32","#ffe14d","#4ee26f","#4da6ff","#b06cff","#ff73bc"]},{id:"scarab",name:"Cafard Égyptien",rarity:"Légendaire",kind:"gold",colors:["#7a4d00","#ffd45a","#fff0a0"]},{id:"silverfish",name:"Poisson d'Argent",rarity:"Légendaire",kind:"silver",colors:["#707b86","#f7fbff","#aebbc7"]}
   ];
-  const rarityOdds=[{name:"Commun",p:70,start:0,end:70},{name:"Rare",p:25,start:70,end:95},{name:"Épique",p:4,start:95,end:99},{name:"Légendaire",p:1,start:99,end:100}];
+  const rarityOdds=[{name:"Commun",p:60,start:0,end:60},{name:"Rare",p:30,start:60,end:90},{name:"Épique",p:8,start:90,end:98},{name:"Légendaire",p:2,start:98,end:100}];
   function colorById(id){return animalColors.find(x=>x.id===id)}
   function rarityClass(r){return r==="Commun"?"rar-common":r==="Rare"?"rar-rare":r==="Épique"?"rar-epic":"rar-legendary"}
   function styledNickHTML(text,item){if(!item)return text.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));const esc=[...text].map(c=>c.replace(/[&<>]/g,d=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[d])));if(item.kind==="solid")return `<span style="color:${item.colors[0]}">${esc.join("")}</span>`;if(item.kind==="alternate")return esc.map((c,i)=>`<span style="color:${item.colors[i%2]}">${c}</span>`).join("");const grad=item.kind==="gold"?"linear-gradient(90deg,#7a4d00,#ffd45a,#fff0a0,#b77a00,#ffd45a)":item.kind==="silver"?"linear-gradient(90deg,#707b86,#f7fbff,#9aa8b5,#fff,#7d8994)":"linear-gradient(90deg,#ff4d4d,#ff9a32,#ffe14d,#4ee26f,#4da6ff,#b06cff,#ff73bc)";return `<span style="background:${grad};background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 10px #ffffff20;animation:betaShimmer 2.4s linear infinite">${esc.join("")}</span>`}
@@ -3093,7 +3093,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     };
     requestAnimationFrame(animateRoll);
   };
-  $b("betaWheelSpin").onclick=async()=>{if(!active()||colorWheelRolling)return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST);refresh()}catch(e){toast("Paiement refusé");return}colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const winOverlay=$b("betaWheelWinOverlay");if(winOverlay){winOverlay.innerHTML="";winOverlay.classList.add("hidden")}const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),matchingSectors=[rarityIndex,rarityIndex+4,rarityIndex+8],sectorIndex=matchingSectors[Math.floor(Math.random()*matchingSectors.length)],sectorCenter=sectorIndex*30,jitter=(Math.random()*20-10),land=sectorCenter+jitter,targetMod=(90-(land%360)+360)%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const before=colorCount(item.id),isNew=before===0;try{const qty=await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=qty}catch(e){console.warn("Gain cosmétique refusé",e)}if(winOverlay){winOverlay.innerHTML=`<div class="betaWheelWinCard ${rarityClass(item.rarity)}"><span>${item.rarity}</span><b>${item.name}</b></div>`;winOverlay.classList.remove("hidden")}$b("betaWheelResult").innerHTML="";colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
+  $b("betaWheelSpin").onclick=async()=>{if(!active()||colorWheelRolling)return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST);refresh()}catch(e){toast("Paiement refusé");return}colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const winOverlay=$b("betaWheelWinOverlay");if(winOverlay){winOverlay.innerHTML="";winOverlay.classList.add("hidden")}const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),matchingSectors=[rarityIndex,rarityIndex+4,rarityIndex+8],sectorIndex=matchingSectors[Math.floor(Math.random()*matchingSectors.length)],sectorCenter=sectorIndex*30,jitter=(Math.random()*20-10),land=sectorCenter+jitter,targetMod=(90-(land%360)+360)%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const before=colorCount(item.id),isNew=before===0;try{const qty=await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=qty}catch(e){console.warn("Gain cosmétique refusé",e)}if(winOverlay){const nameSizeClass=item.name.length>22?" very-long-name":item.name.length>15?" long-name":"";winOverlay.innerHTML=`<div class="betaWheelWinCard ${rarityClass(item.rarity)}${nameSizeClass}"><span>${item.rarity}</span><b>${item.name}</b></div>`;winOverlay.classList.remove("hidden")}$b("betaWheelResult").innerHTML="";colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=()=>openProfileType("color");$b("betaFrameEquipBtn").onclick=()=>openProfileType("frame");$b("betaBadgeEquipBtn").onclick=()=>openProfileType("badge");$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});$b("betaTypeClose").onclick=$b("betaTypeBack").onclick=()=>$b("betaTypeModal").classList.add("hidden");$b("betaTypeModal").addEventListener("click",e=>{if(e.target===$b("betaTypeModal"))$b("betaTypeModal").classList.add("hidden")});
   $b("betaActionCancel").onclick=closeInventoryAction;$b("betaInventoryAction").addEventListener("click",e=>{if(e.target===$b("betaInventoryAction"))closeInventoryAction()});$b("betaActionEquip").onclick=async()=>{if(!selectedInventoryItem)return;await equipInventoryColor(selectedInventoryItem.id);closeInventoryAction()};$b("betaActionSell").onclick=async()=>{const x=selectedInventoryItem?.item;if(!x)return;const price=sellValues[x.rarity]||0;try{const out=await window.mutationEconomy.sellColor(x.id,price);wallet.motations=out.motations;cosmeticState.colors[x.id]=out.qty;closeInventoryAction();refresh();toast(`Vendu +${price} 🧬`)}catch(e){console.warn(e);if(Number.isFinite(e?.actualQty)){cosmeticState.colors[x.id]=e.actualQty;refresh();toast(e.actualQty>1?"Vente refusée":"Aucun doublon à vendre")}else toast("Vente refusée")}};
   let loadedUid="",loadingState=false;
@@ -3172,27 +3172,32 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 #betaStorePanel #betaWheelSpin{margin-top:34px!important;}
 @media(max-width:430px){#betaStorePanel #betaWheelSpin{margin-top:30px!important;}}
 
-/* VENTE + RESULTAT ROUE — correctifs */
-.betaWheelWinOverlay{padding:18px!important;box-sizing:border-box!important}
+/* RESULTAT ROUE — cadre adaptatif au nom du lot */
+.betaWheelWinOverlay{padding:12px!important;box-sizing:border-box!important}
 .betaWheelWinOverlay .betaWheelWinCard{
-  width:min(72%,190px)!important;max-width:190px!important;min-width:0!important;
-  padding:9px 10px!important;border-radius:13px!important;box-sizing:border-box!important;
+  width:max-content!important;min-width:138px!important;max-width:90%!important;
+  padding:10px 15px!important;border-radius:14px!important;box-sizing:border-box!important;
   display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
-  text-align:center!important;line-height:1.05!important;overflow:hidden!important;
+  text-align:center!important;line-height:1.08!important;overflow:visible!important;
 }
 .betaWheelWinOverlay .betaWheelWinCard span{
   display:block!important;width:100%!important;font-size:clamp(11px,2.8vw,14px)!important;
-  line-height:1.05!important;text-align:center!important;margin:0 0 5px!important;
+  line-height:1.05!important;text-align:center!important;margin:0 0 6px!important;
 }
 .betaWheelWinOverlay .betaWheelWinCard b{
-  display:-webkit-box!important;width:100%!important;max-width:100%!important;margin:0!important;
-  color:#fff!important;text-align:center!important;font-size:clamp(12px,3.2vw,16px)!important;line-height:1.08!important;
-  white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;
+  display:-webkit-box!important;width:auto!important;max-width:210px!important;margin:0 auto!important;
+  color:#fff!important;text-align:center!important;font-size:clamp(12px,3.3vw,17px)!important;line-height:1.12!important;
+  white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;
   -webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;
 }
+.betaWheelWinOverlay .betaWheelWinCard.long-name{min-width:172px!important;max-width:94%!important}
+.betaWheelWinOverlay .betaWheelWinCard.long-name b{font-size:clamp(11px,3vw,15px)!important;max-width:220px!important}
+.betaWheelWinOverlay .betaWheelWinCard.very-long-name{min-width:188px!important;max-width:96%!important}
+.betaWheelWinOverlay .betaWheelWinCard.very-long-name b{font-size:clamp(10px,2.8vw,14px)!important;max-width:230px!important}
 @media(max-width:520px){
-  .betaWheelWinOverlay .betaWheelWinCard{width:min(68%,165px)!important;max-width:165px!important;padding:8px 8px!important}
-  .betaWheelWinOverlay .betaWheelWinCard b{font-size:clamp(11px,3.4vw,15px)!important}
+  .betaWheelWinOverlay .betaWheelWinCard{min-width:132px!important;max-width:88%!important;padding:9px 11px!important}
+  .betaWheelWinOverlay .betaWheelWinCard.long-name{min-width:160px!important;max-width:92%!important}
+  .betaWheelWinOverlay .betaWheelWinCard.very-long-name{min-width:174px!important;max-width:95%!important}
 }
 </style>
 <script id="v101-single-modal-manager">
@@ -3223,7 +3228,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   }
   function init(){
     ['resetSoloModal','deleteProfileModal'].forEach(id=>{const el=byId(id);if(el&&el.parentElement!==document.body)document.body.appendChild(el)});
-    managedIds.forEach(id=>{const el=byId(id);if(!el)return;new MutationObserver(sync).observe(el,{attributes:true,attributeFilter:['class','style'])});
+    managedIds.forEach(id=>{const el=byId(id);if(!el)return;new MutationObserver(sync).observe(el,{attributes:true,attributeFilter:['class','style']});});
     /* En capture : si une modale est déjà ouverte, aucun clic derrière elle ne peut en ouvrir une autre. */
     document.addEventListener('click',function(e){
       sync();
