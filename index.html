@@ -2877,13 +2877,22 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const landingOffset=(Math.random()*2-1)*Math.max(0,half-edgeMargin);
     const stopTarget=Math.max(0,winnerCenter+landingOffset-windowCenter);
     const centeredTarget=Math.max(0,winnerCenter-windowCenter);
-    track.style.transition="transform 4.6s cubic-bezier(.08,.72,.12,1)";
-    track.style.transform=`translateX(-${stopTarget}px)`;
-    setTimeout(()=>{
-      // Petit temps d'arrêt : on voit clairement où la barre blanche est tombée.
-      track.style.transition="transform .48s cubic-bezier(.22,.78,.2,1)";
-      track.style.transform=`translateX(-${centeredTarget}px)`;
+    // Le point d'arrêt est connu avant le départ. Une seule animation RAF calcule
+    // toute la trajectoire jusqu'à lui : aucune correction de vitesse en fin de roll.
+    const rollDuration=4600, startTime=performance.now();
+    const easeOutQuint=t=>1-Math.pow(1-t,5);
+    track.style.transition="none";
+    const animateRoll=nowTime=>{
+      const t=Math.min(1,(nowTime-startTime)/rollDuration);
+      const x=stopTarget*easeOutQuint(t);
+      track.style.transform=`translate3d(${-x}px,0,0)`;
+      if(t<1){requestAnimationFrame(animateRoll);return}
+      // Arrêt exact sous la barre, puis seulement ensuite recentrage visuel du cadeau.
+      track.style.transform=`translate3d(${-stopTarget}px,0,0)`;
       setTimeout(()=>{
+        track.style.transition="transform .48s cubic-bezier(.22,.78,.2,1)";
+        track.style.transform=`translate3d(${-centeredTarget}px,0,0)`;
+        setTimeout(()=>{
         const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));
         const winner=track.children[28];
         if(winner){
@@ -2892,8 +2901,10 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
           winner.innerHTML=`<div>+${win.v} 🪙<span class="betaGain">GAGNÉ !</span></div>`;
         }
         rolling=false;refresh();
-      },520);
-    },4750);
+        },520);
+      },150);
+    };
+    requestAnimationFrame(animateRoll);
   };
   $b("betaBuyBox").onclick=()=>{if(!active())return;let c=getN(K.coins);if(c<BOX_COST)return;c-=BOX_COST;localStorage.setItem(K.coins,String(c));const item=cosmetics[Math.floor(Math.random()*cosmetics.length)],inv=getInv();inv.push(item);setInv(inv);toast(`📦 ${item}`);refresh()};
   const n=$b("profileName");if(n)new MutationObserver(refresh).observe(n,{childList:true,subtree:true,characterData:true});setInterval(refresh,1500);refresh();
