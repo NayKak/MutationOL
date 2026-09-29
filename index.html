@@ -2728,4 +2728,48 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   }
 }
 </style>
+
+
+<!-- V96 — centrage robuste des modales Reset solo / Suppression compte -->
+<style id="critical-profile-confirm-modal-centering">
+#resetSoloModal,#deleteProfileModal{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  margin:0!important;
+  padding:12px!important;
+  box-sizing:border-box!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:auto!important;
+  z-index:1000000!important;
+}
+#resetSoloModal:not(.hidden),#deleteProfileModal:not(.hidden){display:flex!important}
+#resetSoloModal.hidden,#deleteProfileModal.hidden{display:none!important}
+#resetSoloModal .modalCard,#deleteProfileModal .modalCard{
+  position:relative!important;
+  inset:auto!important;
+  left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  transform:none!important;
+  margin:auto!important;
+  width:min(390px,calc(100vw - 24px))!important;
+  max-width:390px!important;
+  max-height:calc(100dvh - 24px)!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+}
+</style>
+<script id="critical-profile-confirm-modal-portal">
+(function(){
+  function portalConfirmModals(){
+    ['resetSoloModal','deleteProfileModal'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el && el.parentElement!==document.body) document.body.appendChild(el);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',portalConfirmModals,{once:true});
+  else portalConfirmModals();
+})();
+</script>
 </body></html>
