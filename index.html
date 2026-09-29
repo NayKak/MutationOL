@@ -2797,7 +2797,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 .betaOdds{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:12px 0}.betaOdd{padding:8px 3px;border-radius:9px;text-align:center;font-size:11px;font-weight:850;border:1px solid #ffffff1a}.betaOdd b{display:block;font-size:13px;margin-bottom:2px}
 .r-common{background:#353b42!important;border-color:#69717a!important;color:#e3e7eb!important}.r-rare{background:#173c25!important;border-color:#43a85d!important;color:#83ee9c!important}.r-epic{background:#183455!important;border-color:#397ed0!important;color:#83bfff!important}.r-mythic{background:#4a2b12!important;border-color:#d3832f!important;color:#ffc46f!important}.r-legendary{background:#4b151b!important;border-color:#d9414f!important;color:#ff8792!important}
 .betaRouletteWindow{position:relative;overflow:hidden;height:86px;border:1px solid #2a6878;border-radius:13px;background:#061a22;margin:12px 0;box-shadow:inset 0 0 24px #0009}.betaRouletteWindow:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;transform:translateX(-50%);background:#fff;box-shadow:0 0 12px #fff;z-index:3}.betaRouletteTrack{height:100%;display:flex;align-items:center;gap:8px;padding-left:calc(50% - 47px);transform:translateX(0);will-change:transform}.betaLoot{flex:0 0 94px;height:66px;border-radius:10px;display:grid;place-items:center;text-align:center;font-weight:950;font-size:14px;border:2px solid}.betaLoot small{display:block;font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.05em}
-#betaRollBtn{margin-top:8px!important}.betaResult{display:none!important}.betaLoot.betaWinner{transform:scale(1.08);box-shadow:0 0 24px currentColor,0 0 10px #fff8;z-index:4;transition:transform .25s ease,box-shadow .25s ease}.betaLoot.betaWinner small{opacity:1}.betaLoot .betaGain{display:block;font-size:10px;margin-top:2px;font-weight:900}.betaInventory{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.betaItem{padding:6px 8px;border-radius:9px;background:#143f49;font-size:12px}.betaShopBack{width:100%;margin-top:14px!important;background:#0b303a!important;color:#dffaff!important;border:1px solid #2a6878!important}.betaToast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:100001;background:#092a32;border:1px solid #63ef55;color:#fff;padding:13px 18px;border-radius:14px;box-shadow:0 14px 40px #0009;font-weight:850;text-align:center;max-width:calc(100vw - 30px)}
+#betaRollBtn{margin-top:8px!important}.betaResult{display:none!important}.betaLoot.betaWinner{transform:scale(1.18);filter:brightness(1.22);box-shadow:0 0 38px currentColor,0 0 18px #fff;z-index:5;transition:transform .3s ease,box-shadow .3s ease,filter .3s ease}.betaLoot.betaWinner>div{font-size:25px;line-height:1.02;text-shadow:0 2px 10px #000,0 0 12px currentColor}.betaLoot.betaWinner small{opacity:1;font-size:11px;margin-top:5px}.betaLoot .betaGain{display:block;font-size:12px;margin-top:4px;font-weight:1000;letter-spacing:.08em;color:#fff}.betaRouletteWindow.betaHasWinner .betaLoot:not(.betaWinner){opacity:.28;filter:brightness(.55);transition:opacity .25s ease,filter .25s ease}.betaRouletteWindow.betaHasWinner:after{box-shadow:0 0 18px #fff,0 0 30px #fff}.betaInventory{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.betaItem{padding:6px 8px;border-radius:9px;background:#143f49;font-size:12px}.betaShopBack{width:100%;margin-top:14px!important;background:#0b303a!important;color:#dffaff!important;border:1px solid #2a6878!important}.betaToast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:100001;background:#092a32;border:1px solid #63ef55;color:#fff;padding:13px 18px;border-radius:14px;box-shadow:0 14px 40px #0009;font-weight:850;text-align:center;max-width:calc(100vw - 30px)}
 @media(max-width:480px){#betaShopModal{padding:10px!important}.betaShopCard{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important;padding:16px!important}.betaOdds{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.betaOdd{font-size:9px;padding:6px 1px}.betaOdd b{font-size:11px}.betaLoot{flex-basis:82px}.betaRouletteTrack{padding-left:calc(50% - 41px)}}
 </style>
 <div id="betaShopModal" class="modal hidden">
@@ -2806,7 +2806,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     <div class="betaCurrencySummary"><div id="betaShopBalance" class="betaShopBalance">🪙 0 Mutacoins</div><div id="betaWordBalance" class="betaWordBalance">🧬 0 Motations</div></div>
     <div class="betaTabs"><button id="betaCoinsTab" class="active" type="button">Tirage</button><button id="betaStoreTab" type="button">Boutique</button></div>
     <div id="betaCoinsPanel" class="betaPanel">
-      <div class="betaBox"><h3>Tirage Mutacoins</h3><p>Jouer des mots en jeu vous rapporte des <b>Motations 🧬</b>.</p>
+      <div class="betaBox"><h3>Tirage Mutacoins</h3><p>Gagne des 🧬 en jouant.<br>Échange tes 🧬 contre des 🪙 afin de débloquer des objets uniques.</p>
         <div class="betaRouletteWindow"><div id="betaRouletteTrack" class="betaRouletteTrack"></div></div>
         <button id="betaRollBtn" type="button">Lancer — 50 🧬</button><div id="betaRollResult" class="betaResult"></div>
       </div>
@@ -2820,16 +2820,17 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 </div>
 <script id="beta-mutacoins-boxes-script">
 (function(){
-  const BETA_NICK="Laping", WORD_COST=50, BOX_COST=100;
+  const BETA_NICKS=new Set(["Laping","Lionus"]), WORD_COST=50, BOX_COST=100;
   const K={coins:"mutation_beta_coins",words:"mutation_beta_words",inv:"mutation_beta_inventory"};
   const rewards=[{v:5,p:59,rarity:"Commun",cls:"r-common"},{v:10,p:25,rarity:"Rare",cls:"r-rare"},{v:25,p:10,rarity:"Épique",cls:"r-epic"},{v:50,p:5,rarity:"Mythique",cls:"r-mythic"},{v:100,p:1,rarity:"Légendaire",cls:"r-legendary"}];
   const cosmetics=["🔴 Pseudo rouge","🔵 Pseudo bleu","🧬 Badge Mutation","⚡ Emoji Éclair","👑 Emoji Couronne","✨ Cadre brillant","🌌 Fond cosmique","🐱 Badge Chat"];
   const $b=id=>document.getElementById(id),getN=(k,d=0)=>{const n=Number(localStorage.getItem(k));return Number.isFinite(n)?n:d};
   const getInv=()=>{try{return JSON.parse(localStorage.getItem(K.inv)||"[]")}catch{return []}},setInv=a=>localStorage.setItem(K.inv,JSON.stringify(a));
-  const active=()=>($b("profileName")?.textContent||"").trim()===BETA_NICK;
+  const betaNick=()=>($b("profileName")?.textContent||"").trim();
+  const active=()=>BETA_NICKS.has(betaNick());
   let rolling=false;
-  const START_KEY="mutation_beta_laping_15000_both_granted_v2";
-  function ensureLapingStart(){if(!active())return;if(localStorage.getItem(START_KEY)!=="1"){localStorage.setItem(K.coins,"15000");localStorage.setItem(K.words,"15000");localStorage.setItem(START_KEY,"1")}}
+  function startKey(){return "mutation_beta_15000_both_granted_v3_"+betaNick().toLowerCase()}
+  function ensureBetaStart(){if(!active())return;const k=startKey();if(localStorage.getItem(k)!=="1"){localStorage.setItem(K.coins,"15000");localStorage.setItem(K.words,"15000");localStorage.setItem(k,"1")}}
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
   function pickVisual(){return reward()}
   function lootHTML(x){return `<div class="betaLoot ${x.cls}"><div>${x.v} 🪙<small>${x.rarity}</small></div></div>`}
@@ -2841,7 +2842,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     return {bar,m,c};
   }
   function refresh(){
-    ensureLapingStart();
+    ensureBetaStart();
     const on=active(),cur=ensureCurrencyBar();if(cur.bar)cur.bar.classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");return}
     const c=getN(K.coins),w=getN(K.words),inv=getInv();if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
     $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`🧬 ${w} Motation${w>1?"s":""}`;
@@ -2855,9 +2856,9 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
   $b("betaRollBtn").onclick=()=>{
     if(!active()||rolling||getN(K.words)<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";localStorage.setItem(K.words,String(getN(K.words)-WORD_COST));refresh();
-    const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
+    const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
     const itemW=track.firstElementChild.getBoundingClientRect().width+8,target=28*itemW+(Math.random()*.45-.225)*itemW;track.style.transition="transform 4.6s cubic-bezier(.08,.72,.12,1)";track.style.transform=`translateX(-${target}px)`;
-    setTimeout(()=>{const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));const winner=track.children[28];if(winner){winner.classList.add("betaWinner");winner.innerHTML=`<div>+${win.v} 🪙<small>${win.rarity}</small><span class="betaGain">GAGNÉ</span></div>`;}rolling=false;refresh();},4700);
+    setTimeout(()=>{const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));const winner=track.children[28];if(winner){winner.classList.add("betaWinner");track.parentElement.classList.add("betaHasWinner");winner.innerHTML=`<div>+${win.v} 🪙<small>${win.rarity}</small><span class="betaGain">GAGNÉ !</span></div>`;}rolling=false;refresh();},4700);
   };
   $b("betaBuyBox").onclick=()=>{if(!active())return;let c=getN(K.coins);if(c<BOX_COST)return;c-=BOX_COST;localStorage.setItem(K.coins,String(c));const item=cosmetics[Math.floor(Math.random()*cosmetics.length)],inv=getInv();inv.push(item);setInv(inv);toast(`📦 ${item}`);refresh()};
   const n=$b("profileName");if(n)new MutationObserver(refresh).observe(n,{childList:true,subtree:true,characterData:true});setInterval(refresh,1500);refresh();
