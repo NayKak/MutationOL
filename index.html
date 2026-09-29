@@ -1748,7 +1748,19 @@ window.mutationEconomy={
   async addColor(id){if(!auth.currentUser)throw new Error("Non connecté");const r=ref(db,`cosmetics/${auth.currentUser.uid}/colors/${id}`);const t=await runTransaction(r,v=>Math.min(99,Math.max(0,Number(v)||0)+1));if(!t.committed)throw new Error("Gain refusé");return Number(t.snapshot.val())||0},
   async equipColor(id){if(!auth.currentUser)throw new Error("Non connecté");const u=auth.currentUser.uid;await set(ref(db,`cosmetics/${u}/equippedColor`),id||null);await set(ref(db,`publicCosmetics/${u}/equippedColor`),id||null)},
   async colorQty(id){if(!auth.currentUser)return 0;const s=await get(ref(db,`cosmetics/${auth.currentUser.uid}/colors/${id}`));const v=s.val();return v===true?1:Math.max(0,Number(v)||0)},
-  async sellColor(id,value){if(!auth.currentUser)throw new Error("Non connecté");const u=auth.currentUser.uid,r=ref(db,`cosmetics/${u}/colors/${id}`);const firstSnap=await get(r),firstRaw=firstSnap.val(),firstQty=firstRaw===true?1:Math.max(0,Number(firstRaw)||0);if(firstQty<=1){const e=new Error("Pas de doublon");e.actualQty=firstQty;throw e}const t=await runTransaction(r,v=>{const n=(v===null||typeof v==="undefined")?firstQty:(v===true?1:Math.max(0,Number(v)||0));if(n<=1)return;return n-1});if(!t.committed){const actual=await this.colorQty(id);const e=new Error("Pas de doublon");e.actualQty=actual;throw e}const motations=await this.changeWallet("motations",value);return {motations,qty:Number(t.snapshot.val())||0}},
+  async sellColor(id,value){
+    if(!auth.currentUser)throw new Error("Non connecté");
+    const u=auth.currentUser.uid;
+    const colorRef=ref(db,`cosmetics/${u}/colors/${id}`), motRef=ref(db,`wallets/${u}/motations`);
+    const [colorSnap,motSnap]=await Promise.all([get(colorRef),get(motRef)]);
+    const raw=colorSnap.val(),qty=raw===true?1:Math.max(0,Number(raw)||0),mot=Math.max(0,Number(motSnap.val())||0);
+    if(qty<=1){const e=new Error("Pas de doublon");e.actualQty=qty;throw e}
+    const updates={};
+    updates[`cosmetics/${u}/colors/${id}`]=qty-1;
+    updates[`wallets/${u}/motations`]=mot+value;
+    try{await update(ref(db),updates)}catch(err){const e=new Error("Vente refusée");e.cause=err;throw e}
+    return {motations:mot+value,qty:qty-1}
+  },
   async publicAppearance(userUid){if(!userUid)return {};const s=await get(ref(db,`publicCosmetics/${userUid}`));return s.val()||{}},
   async setAppearanceField(field,value){if(!auth.currentUser)throw new Error("Non connecté");if(!["equippedColor","equippedAvatarFrame","equippedBadge"].includes(field))throw new Error("Champ refusé");const u=auth.currentUser.uid;await set(ref(db,`cosmetics/${u}/${field}`),value||null);await set(ref(db,`publicCosmetics/${u}/${field}`),value||null)}
 };
