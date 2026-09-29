@@ -2854,12 +2854,14 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 <div id="betaColorModal" class="hidden"><div class="betaColorCard"><button id="betaColorClose" class="modalClose" type="button">×</button><h2>Couleurs</h2><p class="betaColorIntro">Équipe une couleur obtenue dans tes tirages.</p><div id="betaColorInventory" class="betaColorGrid"></div><button id="betaColorBack" type="button" class="secondary">← Retour au profil</button></div></div>
 <style id="beta-direct-wheel-polish">
 .betaDirectWheelBox{padding:14px!important}.betaDirectWheelBox h3{margin:0 0 4px;text-align:center}.betaDirectWheelBox>p{text-align:center;margin:0 0 4px;color:#9fc4ce;font-size:12px}
-#betaStorePanel .betaWheelWrap{width:min(205px,56vw);margin:9px auto 8px}#betaStorePanel .betaWheelLegend{margin:7px 0;gap:5px}#betaStorePanel .betaWheelLegend div{padding:5px 7px;font-size:10px;text-align:center}#betaStorePanel .betaWheelResult{min-height:34px;margin:5px 0;font-size:15px}
+#betaStorePanel .betaWheelWrap{width:min(175px,48vw);margin:5px auto 2px}#betaStorePanel .betaWheelLegend{margin:7px 0;gap:5px}#betaStorePanel .betaWheelLegend div{padding:5px 7px;font-size:10px;text-align:center}#betaStorePanel .betaWheelResult{min-height:34px;margin:5px 0;font-size:15px}
+#betaStorePanel #betaWheelSpin{margin-top:2px!important;padding-top:11px!important;padding-bottom:11px!important}
+@media(max-width:430px){#betaStorePanel .betaWheelWrap{width:min(165px,46vw)!important;margin:4px auto 1px!important}}
 </style>
 <script id="beta-mutacoins-boxes-script">
 (function(){
   const BETA_NICKS=new Set(["laping","lionus"]), WORD_COST=50, BOX_COST=100;
-  const K={coins:"mutation_beta_coins",words:"mutation_beta_words",inv:"mutation_beta_inventory",colors:"mutation_beta_color_inventory",equipped:"mutation_beta_color_equipped"};
+  const K={coins:"mutation_wallet_v2_mutacoins",words:"mutation_wallet_v2_motations",inv:"mutation_beta_inventory",colors:"mutation_beta_color_inventory",equipped:"mutation_beta_color_equipped"};
   const rewards=[{v:5,p:59,rarity:"Commun",cls:"r-common"},{v:10,p:25,rarity:"Rare",cls:"r-rare"},{v:25,p:10,rarity:"Épique",cls:"r-epic"},{v:50,p:5,rarity:"Mythique",cls:"r-mythic"},{v:100,p:1,rarity:"Légendaire",cls:"r-legendary"}];
   const cosmetics=["🔴 Pseudo rouge","🔵 Pseudo bleu","🧬 Badge Mutation","⚡ Emoji Éclair","👑 Emoji Couronne","✨ Cadre brillant","🌌 Fond cosmique","🐱 Badge Chat"];
   const $b=id=>document.getElementById(id),getN=(k,d=0)=>{const n=Number(localStorage.getItem(k));return Number.isFinite(n)?n:d};
@@ -2889,15 +2891,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   };
   const active=()=>BETA_NICKS.has(betaNick().toLowerCase());
   let rolling=false,colorWheelRolling=false,wheelRotation=0;
-  function startKey(){return "mutation_beta_50000_both_granted_v10_"+betaNick().toLowerCase()}
+  function startKey(){return "mutation_wallet_v2_granted_50000_"+betaNick().toLowerCase()}
   function ensureBetaStart(){
     if(!active())return;
-    const k=startKey(), coins=getN(K.coins), words=getN(K.words);
-    // Migration v10 : corrige aussi les installations où l'ancien marqueur avait été posé
-    // alors que les soldes étaient restés à 0 ou 15 000.
-    if(localStorage.getItem(k)!=="1" || coins===0 || coins===15000 || words===0 || words===15000){
-      localStorage.setItem(K.coins,String((coins===0 || coins===15000) ? 50000 : Math.max(50000,coins)));
-      localStorage.setItem(K.words,String((words===0 || words===15000) ? 50000 : Math.max(50000,words)));
+    const k=startKey();
+    // Portefeuille V2 : nouvelles clés indépendantes des anciens soldes 0/15000.
+    // Une seule dotation de départ, puis les gains/dépenses persistent normalement.
+    if(localStorage.getItem(k)!=="1"){
+      localStorage.setItem(K.coins,"50000");
+      localStorage.setItem(K.words,"50000");
       localStorage.setItem(k,"1");
     }
   }
