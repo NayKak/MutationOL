@@ -3016,7 +3016,22 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   function closeInventoryAction(){$b("betaInventoryAction")?.classList.add("hidden");selectedInventoryItem=null}
   function openColorInventory(){if(!active())return;renderColorInventory();$b("betaColorModal").classList.remove("hidden")}
   function openProfileType(type){if(!active())return;if(type==="color"){openColorInventory();return}const title=type==="frame"?"Cadres":"Badges",box=$b("betaTypeInventory");$b("betaTypeTitle").textContent=title;$b("betaTypeIntro").textContent=type==="frame"?"Équipe un cadre obtenu dans tes tirages.":"Équipe un badge obtenu dans tes tirages.";box.innerHTML=`<div class="betaColorEmpty">Aucun ${type==="frame"?"cadre":"badge"} débloqué pour le moment.</div>`;$b("betaTypeModal").classList.remove("hidden")}
-  function drawRarity(){let n=Math.random()*100;return rarityOdds.find(x=>n<x.end)||rarityOdds[0]}
+  function drawRarity(){
+    const uid=window.mutationEconomy?.uid?.()||null;
+    // Laping et Lionus : chances égales entre les 4 raretés (25 % chacune).
+    if(uid==="fhSFf6mNagVhcM0OCzGjySLBA212"||uid==="yhLytuIA1PgJ3vhNYBMOqRNzose2"){
+      const adminOdds=[
+        {name:"Commun",p:25,start:0,end:25},
+        {name:"Rare",p:25,start:25,end:50},
+        {name:"Épique",p:25,start:50,end:75},
+        {name:"Légendaire",p:25,start:75,end:100}
+      ];
+      const n=Math.random()*100;
+      return adminOdds.find(x=>n<x.end)||adminOdds[0];
+    }
+    const n=Math.random()*100;
+    return rarityOdds.find(x=>n<x.end)||rarityOdds[0]
+  }
   function drawAnimalColor(rarity){const pool=animalColors.filter(x=>x.rarity===rarity);return pool[Math.floor(Math.random()*pool.length)]}
 
   const betaNick=()=>{
