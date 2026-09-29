@@ -3001,6 +3001,16 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 }
 </style>
 <script id="beta-mutacoins-boxes-script">
+  // Navigation Boutique : ce script est classique alors que le jeu principal est un module.
+  // Les variables top-level du module (NAV_STATE_KEY/saveUiLocation) ne sont pas visibles ici.
+  const BETA_NAV_STATE_KEY="mutation_ui_location_v1";
+  function betaSaveUiLocation(patch={}){
+    try{
+      const prev=JSON.parse(localStorage.getItem(BETA_NAV_STATE_KEY)||"{}");
+      localStorage.setItem(BETA_NAV_STATE_KEY,JSON.stringify({...prev,...patch}));
+    }catch(e){ console.warn("Sauvegarde navigation boutique :",e); }
+  }
+
 (function(){
   const BETA_NICKS=new Set(["laping","lionus"]), WORD_COST=50, BOX_COST=100;
   const rewards=[{v:5,p:59,rarity:"Commun",cls:"r-common"},{v:10,p:25,rarity:"Rare",cls:"r-rare"},{v:25,p:10,rarity:"Épique",cls:"r-epic"},{v:50,p:5,rarity:"Mythique",cls:"r-mythic"},{v:100,p:1,rarity:"Légendaire",cls:"r-legendary"}];
@@ -3130,11 +3140,11 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     renderMainInventory();
     for(const id of ["adminAddMotations","adminAddMutacoins"]){const e=$b(id);if(e)e.classList.toggle("hidden",!isAdmin())}
   }
-  function showTab(which){saveUiLocation({shopOpen:true,shopTab:which});const coins=which==="coins",store=which==="store",inv=which==="inventory";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",!store);$b("betaInventoryPanel").classList.toggle("hidden",!inv);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",store);$b("betaInventoryTab").classList.toggle("active",inv);if(inv)renderMainInventory()}
-  function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");saveUiLocation({shopOpen:true,shopTab:tab});showTab(tab);refresh()}window.mutationOpenEconomy=openModal;try{const _st=JSON.parse(localStorage.getItem(NAV_STATE_KEY)||"{}");if(_st.shopOpen&&auth.currentUser&&!roomCode)setTimeout(()=>openModal(_st.shopTab||"coins"),0)}catch{}
+  function showTab(which){betaSaveUiLocation({shopOpen:true,shopTab:which});const coins=which==="coins",store=which==="store",inv=which==="inventory";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",!store);$b("betaInventoryPanel").classList.toggle("hidden",!inv);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",store);$b("betaInventoryTab").classList.toggle("active",inv);if(inv)renderMainInventory()}
+  function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");betaSaveUiLocation({shopOpen:true,shopTab:tab});showTab(tab);refresh()}window.mutationOpenEconomy=openModal;try{const _st=JSON.parse(localStorage.getItem(BETA_NAV_STATE_KEY)||"{}");if(_st.shopOpen&&auth.currentUser&&!roomCode)setTimeout(()=>openModal(_st.shopTab||"coins"),0)}catch{}
   window.betaMutationWordEarned=async function(source){if(!active())return;try{wallet.motations=await window.mutationEconomy.changeWallet("motations",1);refresh()}catch(e){console.warn("Gain Motation refusé",e)}};
-  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaInventoryTab").onclick=()=>showTab("inventory");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden");saveUiLocation({shopOpen:false})};$b("betaShopClose").onclick=()=>{if(!shopBusy())closeShop()};$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();if(!shopBusy())closeShop()};
-  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!shopBusy()){ $b("betaShopModal").classList.add("hidden");saveUiLocation({shopOpen:false}) }});
+  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaInventoryTab").onclick=()=>showTab("inventory");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden");betaSaveUiLocation({shopOpen:false})};$b("betaShopClose").onclick=()=>{if(!shopBusy())closeShop()};$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();if(!shopBusy())closeShop()};
+  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!shopBusy()){ $b("betaShopModal").classList.add("hidden");betaSaveUiLocation({shopOpen:false}) }});
   $b("betaRollBtn").onclick=async()=>{
     if(!active()||shopBusy()||wallet.motations<WORD_COST)return;rolling=true;syncShopBusy();$b("betaRollResult").textContent="";try{wallet.motations=await window.mutationEconomy.changeWallet("motations",-WORD_COST);refresh()}catch(e){rolling=false;refresh();toast("Paiement refusé");return}
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
