@@ -3461,3 +3461,21 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 }
 </style>
 </body></html>
+<style id="betaInventoryThreeColumnsPatch">
+/* Inventaire compact : 3 cases par ligne sur mobile */
+@media(max-width:520px){
+  .betaInvType{padding:8px!important}
+  .betaInvItems{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+  .betaInvItem{min-height:76px!important;padding:7px 3px!important;border-radius:8px!important}
+  .betaInvNick{font-size:clamp(10px,3.15vw,13px)!important;letter-spacing:-.055em!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important}
+  .betaInvLabel{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;white-space:normal!important;overflow:hidden!important;overflow-wrap:anywhere!important;word-break:normal!important;font-size:8.5px!important;line-height:1.08!important;margin-top:6px!important;min-height:18px!important;max-height:19px!important;padding:0 1px!important}
+  .betaInvCount{right:3px!important;top:3px!important;font-size:8px!important;padding:2px 3px!important}
+  .betaInvItem.equipped:after{left:3px!important;top:3px!important;font-size:8px!important;padding:2px 3px!important}
+}
+@media(max-width:360px){
+  .betaInvItems{gap:4px!important}
+  .betaInvItem{padding-left:2px!important;padding-right:2px!important}
+  .betaInvNick{font-size:10px!important}
+  .betaInvLabel{font-size:8px!important}
+}
+</style>
