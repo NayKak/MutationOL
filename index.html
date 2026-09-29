@@ -3115,4 +3115,93 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 })();
 </script>
 
+
+
+<!-- V101 — modales uniques + centrage viewport mobile robuste -->
+<style id="v101-single-modal-center">
+/* Les confirmations restent centrées dans le viewport visible, indépendamment du scroll du profil. */
+#resetSoloModal,#deleteProfileModal{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  z-index:2147483000!important;
+  background:rgba(0,0,0,.72)!important;
+}
+#resetSoloModal:not(.hidden),#deleteProfileModal:not(.hidden){display:block!important}
+#resetSoloModal.hidden,#deleteProfileModal.hidden{display:none!important}
+#resetSoloModal .modalCard,#deleteProfileModal .modalCard{
+  position:fixed!important;
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+  width:min(390px,calc(100vw - 28px))!important;
+  max-width:calc(100vw - 28px)!important;
+  max-height:min(520px,calc(100dvh - 28px))!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+}
+#resetSoloModal .modalX,#deleteProfileModal .modalX{
+  position:absolute!important;
+  top:10px!important;
+  right:10px!important;
+  z-index:5!important;
+  pointer-events:auto!important;
+}
+
+/* V99 — espace sous la roue */
+#betaStorePanel #betaWheelSpin{margin-top:34px!important;}
+@media(max-width:430px){#betaStorePanel #betaWheelSpin{margin-top:30px!important;}}
+</style>
+<script id="v101-single-modal-manager">
+(function(){
+  const managedIds=[
+    'rulesModal','logoutModal','anonymousHelpModal','resetSoloHelpModal','deleteProfileHelpModal',
+    'resetSoloModal','deleteProfileModal','clearErrorHelpModal','soloQuitModal','contactModal',
+    'betaShopModal','betaColorModal','betaTypeModal'
+  ];
+  let activeModal=null, internal=false;
+  const byId=id=>document.getElementById(id);
+  const isOpen=el=>!!el && !el.classList.contains('hidden');
+  function visibleManaged(){return managedIds.map(byId).filter(isOpen)}
+  function closeExtras(preferred){
+    if(internal)return;
+    internal=true;
+    const open=visibleManaged();
+    let keep=preferred&&isOpen(preferred)?preferred:(activeModal&&isOpen(activeModal)?activeModal:open[0]);
+    open.forEach(el=>{if(el!==keep)el.classList.add('hidden')});
+    activeModal=keep||null;
+    internal=false;
+  }
+  function sync(){
+    const open=visibleManaged();
+    if(!open.length){activeModal=null;return}
+    if(activeModal&&isOpen(activeModal)){closeExtras(activeModal);return}
+    activeModal=open[0];closeExtras(activeModal);
+  }
+  function init(){
+    ['resetSoloModal','deleteProfileModal'].forEach(id=>{const el=byId(id);if(el&&el.parentElement!==document.body)document.body.appendChild(el)});
+    managedIds.forEach(id=>{const el=byId(id);if(!el)return;new MutationObserver(sync).observe(el,{attributes:true,attributeFilter:['class','style'])});
+    /* En capture : si une modale est déjà ouverte, aucun clic derrière elle ne peut en ouvrir une autre. */
+    document.addEventListener('click',function(e){
+      sync();
+      if(!activeModal)return;
+      if(activeModal.contains(e.target))return;
+      /* Le panneau d'action d'inventaire appartient à la modale Boutique et reste autorisé. */
+      const action=byId('betaInventoryAction');
+      if(action&&action.contains(e.target))return;
+      e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    },true);
+    sync();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 </body></html>
