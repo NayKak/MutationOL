@@ -2943,7 +2943,10 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 
 .betaSellAllDuplicates{display:block!important;width:min(100%,320px)!important;margin:10px auto 14px!important}
 .betaTabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}.betaInventoryList{display:grid;gap:12px}.betaInvType{background:#081f29;border:1px solid #245765;border-radius:13px;padding:11px}.betaInvType h3{margin:0 0 8px;font-size:15px}.betaInvRarity{margin-top:9px}.betaInvRarityTitle{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:950;opacity:.8;margin-bottom:5px}.betaInvItems{display:grid;gap:6px}.betaInvItem{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%!important;margin:0!important;padding:9px 10px!important;background:#0b2a34!important;border:1px solid #285a67!important;border-radius:10px!important;text-align:left}.betaInvItem.equipped{border-color:#63ef55!important;box-shadow:0 0 0 1px #63ef5544 inset}.betaInvName{min-width:0;font-weight:850}.betaInvCount{white-space:nowrap;font-size:11px;opacity:.8}.betaInventoryIntro{text-align:center;color:#9fc4ce;font-size:12px}.betaInvEmpty{padding:10px;text-align:center;color:#86aab4;font-size:12px}.betaActionSheet{position:fixed;inset:0;z-index:100020;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px}.betaActionSheet.hidden{display:none}.betaActionCard{width:min(390px,calc(100vw - 28px));background:#071923;border:1px solid #2b6978;border-radius:16px;padding:18px;box-shadow:0 22px 70px #000b}.betaActionCard h3{text-align:center;margin:0 0 5px}.betaActionCard p{text-align:center;color:#9fc4ce;font-size:12px}.betaActionButtons{display:grid;gap:8px;margin-top:12px}.betaBadgeInline{display:inline-flex;align-items:center;margin-left:5px;font-size:.78em}.betaAvatarFrame{border-radius:50%;box-shadow:0 0 0 3px var(--frame-color,#63ef55),0 0 12px var(--frame-color,#63ef55)}
+
+.betaSellAllConfirmCard h3{font-size:22px;margin-bottom:14px!important}.betaSellAllConfirmCard #betaSellAllConfirmText{font-size:16px;color:#eafcff;line-height:1.45;margin:0}.betaSellAllConfirmCard #betaSellAllConfirmText strong{color:#69f0a0}.betaSellAllKeep{margin:12px 0 0!important;font-size:13px!important;color:#9fc4ce!important}.betaSellAllConfirmCard .betaActionButtons{margin-top:20px}.betaSellAllConfirmCard .betaActionButtons button{min-height:50px;font-weight:900}
 </style>
+<div id="betaSellAllConfirm" class="betaActionSheet hidden"><div class="betaActionCard betaSellAllConfirmCard"><h3>Vendre les doublons ?</h3><p id="betaSellAllConfirmText"></p><p class="betaSellAllKeep">Un exemplaire de chaque objet sera conservé.</p><div class="betaActionButtons"><button id="betaSellAllConfirmYes" type="button">Vendre</button><button id="betaSellAllConfirmNo" type="button" class="secondary">Annuler</button></div></div></div>
 <div id="betaInventoryAction" class="betaActionSheet hidden"><div class="betaActionCard"><h3 id="betaActionTitle">Objet</h3><p id="betaActionInfo"></p><div class="betaActionButtons"><button id="betaActionEquip" type="button">Équiper</button><button id="betaActionSell" type="button" class="secondary">Vendre</button><button id="betaActionCancel" type="button" class="secondary">Annuler</button></div></div></div>
 <div id="betaColorModal" class="hidden"><div class="betaColorCard"><button id="betaColorClose" class="modalClose" type="button">×</button><h2>Couleurs</h2><p class="betaColorIntro">Équipe une couleur obtenue dans tes tirages.</p><div id="betaColorInventory" class="betaColorGrid"></div><button id="betaColorBack" type="button" class="secondary">← Retour au profil</button></div></div><div id="betaTypeModal" class="hidden"><div class="betaColorCard"><button id="betaTypeClose" class="modalClose" type="button">×</button><h2 id="betaTypeTitle">Cosmétiques</h2><p id="betaTypeIntro" class="betaColorIntro"></p><div id="betaTypeInventory" class="betaColorGrid"></div><button id="betaTypeBack" type="button" class="secondary">← Retour au profil</button></div></div>
 <style id="beta-direct-wheel-polish">
@@ -3114,7 +3117,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     if(!duplicates.length){toast("Aucun doublon à vendre");return}
     const totalItems=duplicates.reduce((sum,x)=>sum+(x.qty-1),0);
     const totalValue=duplicates.reduce((sum,x)=>sum+(x.qty-1)*(sellValues[x.item.rarity]||0),0);
-    if(!confirm(`Vendre ${totalItems} doublon${totalItems>1?"s":""} pour ${totalValue} 🧬 ?\n\nUn exemplaire de chaque objet sera conservé.`))return;
+    const confirmModal=$b("betaSellAllConfirm"),confirmText=$b("betaSellAllConfirmText");
+    confirmText.innerHTML=`Vendre <strong>${totalItems} doublon${totalItems>1?"s":""}</strong> pour <strong>${totalValue} 🧬</strong> ?`;
+    confirmModal.classList.remove("hidden");
+    const confirmed=await new Promise(resolve=>{
+      const yes=$b("betaSellAllConfirmYes"),no=$b("betaSellAllConfirmNo");
+      const finish=value=>{confirmModal.classList.add("hidden");yes.onclick=null;no.onclick=null;confirmModal.onclick=null;resolve(value)};
+      yes.onclick=()=>finish(true);no.onclick=()=>finish(false);confirmModal.onclick=e=>{if(e.target===confirmModal)finish(false)};
+    });
+    if(!confirmed)return;
     const btn=$b("betaSellAllDuplicates");btn.disabled=true;const originalLabel=btn.textContent;
     let sold=0,gained=0,failed=false;btn.textContent=`Vente en cours… 0/${totalItems}`;
     try{
