@@ -3003,6 +3003,20 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   #betaColorModal,#betaTypeModal{padding:10px!important}
   #betaColorModal .betaColorCard,#betaTypeModal .betaColorCard{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important}
 }
+
+/* Profil — sélecteurs cosmétiques façon sac à dos */
+#betaColorModal .betaColorCard,#betaTypeModal .betaColorCard{padding-top:62px!important}
+#betaColorClose,#betaTypeClose{position:absolute!important;top:12px!important;right:12px!important;z-index:20!important;width:42px!important;height:42px!important;margin:0!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:50%!important;background:#541723!important;color:#ff7189!important;border:2px solid #ff7189!important;box-shadow:0 0 0 3px #ff718922,0 5px 16px #0008!important;font-size:30px!important;font-weight:900!important;line-height:1!important}
+#betaColorClose:hover,#betaColorClose:focus,#betaTypeClose:hover,#betaTypeClose:focus{background:#7a1f31!important;color:#fff!important;outline:none!important}
+#betaColorModal .betaColorCard>h2,#betaTypeModal .betaColorCard>h2{margin-top:-45px!important;margin-bottom:8px!important}
+#betaColorInventory.betaColorGrid,#betaTypeInventory.betaColorGrid{display:block!important}
+.betaProfileRarity{margin:0 0 13px}.betaProfileRarity:last-child{margin-bottom:0}.betaProfileBackpack{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.betaProfileCosmeticItem{position:relative!important;width:100%!important;min-width:0!important;min-height:92px!important;margin:0!important;padding:16px 5px 8px!important;border-radius:11px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;text-align:center!important;background:#0b222b!important;border:2px solid #6f7e85!important;color:#fff!important}
+.betaProfileCosmeticItem[data-rarity="Commun"]{border-color:#aeb9be!important;background:linear-gradient(145deg,#aeb9be20,#0b222b 62%)!important}.betaProfileCosmeticItem[data-rarity="Rare"]{border-color:#58df7b!important;background:linear-gradient(145deg,#58df7b20,#0b222b 62%)!important}.betaProfileCosmeticItem[data-rarity="Épique"]{border-color:#b66bea!important;background:linear-gradient(145deg,#b66bea20,#0b222b 62%)!important}.betaProfileCosmeticItem[data-rarity="Légendaire"]{border-color:#e6b83f!important;background:linear-gradient(145deg,#e6b83f22,#0b222b 62%)!important}
+.betaProfileCosmeticItem.equipped{box-shadow:0 0 0 2px #63ef5566 inset,0 0 12px #63ef5533!important}.betaProfileEquipped{position:absolute;left:5px;top:4px;padding:2px 4px;border-radius:6px;background:#06171dcc;color:#63ef55;font-size:9px;font-weight:1000}
+.betaProfileNick{display:block;width:100%;font-size:clamp(12px,3.6vw,16px);font-weight:950;white-space:nowrap;overflow:hidden;letter-spacing:-.035em;line-height:1.05}.betaProfileItemName{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;width:100%;margin-top:7px;font-size:9.5px;line-height:1.1;color:#dcecf1;min-height:20px}
+@media(min-width:700px){.betaProfileBackpack{grid-template-columns:repeat(4,minmax(0,1fr))}.betaProfileNick{font-size:15px}}
+@media(max-width:390px){.betaProfileBackpack{gap:6px}.betaProfileCosmeticItem{min-height:88px!important;padding-left:4px!important;padding-right:4px!important}.betaProfileNick{font-size:12px}.betaProfileItemName{font-size:9px}}
 </style>
 <script id="beta-mutacoins-boxes-script">
   // Navigation Boutique : ce script est classique alors que le jeu principal est un module.
@@ -3070,7 +3084,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const rarityOrder={"Commun":0,"Rare":1,"Épique":2,"Légendaire":3};
   let selectedInventoryItem=null;
   function renderColorInventory(){
-    const box=$b("betaColorInventory");if(box){const owned=getColors().map(id=>colorById(id)).filter(Boolean).sort((a,b)=>(rarityOrder[a.rarity]-rarityOrder[b.rarity])||a.name.localeCompare(b.name,"fr")),eq=cosmeticState.equippedColor||"";box.innerHTML=owned.length?owned.map(x=>{const id=x.id;return `<button class="betaColorItem ${eq===id?"equipped":""}" data-color-id="${id}" type="button"><span class="betaColorPreview">${styledNickHTML(betaNick(),x)}</span>${x.name}<small class="${rarityClass(x.rarity)}">${x.rarity}</small></button>`}).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=()=>equipInventoryColor(btn.dataset.colorId))}
+    const box=$b("betaColorInventory");
+    if(box){
+      const owned=getColors().map(id=>colorById(id)).filter(Boolean).sort((a,b)=>(rarityOrder[a.rarity]-rarityOrder[b.rarity])||a.name.localeCompare(b.name,"fr")),eq=cosmeticState.equippedColor||"";
+      box.innerHTML=owned.length?["Commun","Rare","Épique","Légendaire"].map(r=>{
+        const items=owned.filter(x=>x.rarity===r);if(!items.length)return"";
+        return `<section class="betaProfileRarity"><div class="betaInvRarityTitle ${rarityClass(r)}">${r}</div><div class="betaProfileBackpack">${items.map(x=>`<button class="betaProfileCosmeticItem ${eq===x.id?"equipped":""}" data-rarity="${x.rarity}" data-color-id="${x.id}" type="button"><span class="betaProfileNick">${styledNickHTML(betaNick(),x)}</span><span class="betaProfileItemName">${x.name}</span>${eq===x.id?'<span class="betaProfileEquipped">✓</span>':''}</button>`).join("")}</div></section>`
+      }).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';
+      box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=()=>equipInventoryColor(btn.dataset.colorId));
+    }
     renderMainInventory();
   }
   async function equipInventoryColor(id){try{await window.mutationEconomy.equipColor(id);cosmeticState.equippedColor=id;const u=window.mutationEconomy?.auth?.currentUser?.uid;if(u){publicAppearanceCache.set(u,{...(publicAppearanceCache.get(u)||{}),equippedColor:id});publicAppearanceAt.set(u,Date.now())}renderColorInventory();applyEquippedColor();toast("Couleur équipée et enregistrée") }catch(e){console.warn(e);toast("Équipement refusé")}}
