@@ -1507,8 +1507,8 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <button id="rulesBtn" type="button" class="tabBtn">Règles</button>
 </nav>
 <div id="betaCurrencyBar" class="betaCurrencyBar hidden" aria-label="Monnaies">
-  <button id="menuMotationStock" type="button" class="betaCurrencyBtn betaMotationBtn" title="Ouvrir les tirages Mutacoins"><span>🧬</span><b id="menuMotationValue">0</b><small>Motations</small></button>
-  <button id="menuCoinStock" type="button" class="betaCurrencyBtn betaCoinBtn" title="Ouvrir la boutique"><span>🪙</span><b id="menuCoinValue">0</b><small>Mutacoins</small></button>
+  <button id="menuMotationStock" type="button" class="betaCurrencyBtn betaMotationBtn" title="Ouvrir les tirages Mutacoins"><span>🧬</span><b id="menuMotationValue">0</b><small>Motations</small><span id="adminAddMotations" class="adminCurrencyPlus hidden" role="button" aria-label="Ajouter 1000 Motations">+</span></button>
+  <button id="menuCoinStock" type="button" class="betaCurrencyBtn betaCoinBtn" title="Ouvrir les cosmétiques"><span>🪙</span><b id="menuCoinValue">0</b><small>Mutacoins</small><span id="adminAddMutacoins" class="adminCurrencyPlus hidden" role="button" aria-label="Ajouter 1000 Mutacoins">+</span></button>
 </div>
 <div id="playMenu">
   <div class="modeDivider"><span>Partie classée</span></div>
@@ -1695,11 +1695,23 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,GoogleAuthProvider,OAuthProvider,signInWithPopup,signOut}from"https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import {getDatabase,ref,get,set,update,remove,onValue,runTransaction,onDisconnect,serverTimestamp,increment,query,orderByChild,limitToLast} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
-console.info("Mutation Online — V59");
+console.info("Mutation Online — Firebase Economy V1");
 const firebaseConfig={apiKey:"AIzaSyAbPp2anmsI_iuJiZJ74uRt_igmFLA3PIU",authDomain:"mutation-216a2.firebaseapp.com",databaseURL:"https://mutation-216a2-default-rtdb.europe-west1.firebasedatabase.app/",projectId:"mutation-216a2",storageBucket:"mutation-216a2.firebasestorage.app",messagingSenderId:"742495380577",appId:"1:742495380577:web:c42e6d3101d5f09ba93620"};
 const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRvafVO83vnE0VivCZTeIoKHOMKBYcTK9a1FfIetJ3FlMprb5NoUUUxOrrKZzt4vNzIBFmNXhDsHzM0/pub?output=csv";
 const TTL=86400000,CLOSED=600000,GRACE=90000;
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app),$=id=>document.getElementById(id),norm=s=>s.trim().toLowerCase().normalize("NFC"),key=s=>norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/œ/g,"oe").replace(/æ/g,"ae");
+// Économie officielle : portefeuille et cosmétiques sont stockés dans Firebase par UID.
+window.mutationEconomy={
+  auth,db,ref,get,set,update,remove,onValue,runTransaction,
+  uid:()=>auth.currentUser?.uid||null,
+  walletRef:()=>auth.currentUser?ref(db,`wallets/${auth.currentUser.uid}`):null,
+  cosmeticsRef:()=>auth.currentUser?ref(db,`cosmetics/${auth.currentUser.uid}`):null,
+  async wallet(){const r=this.walletRef();if(!r)return {mutacoins:0,motations:0};const s=await get(r),v=s.val()||{};return {mutacoins:Number(v.mutacoins)||0,motations:Number(v.motations)||0}},
+  async changeWallet(field,delta){const r=this.walletRef();if(!r)throw new Error("Non connecté");const child=ref(db,`wallets/${auth.currentUser.uid}/${field}`);const out=await runTransaction(child,v=>Math.max(0,(Number(v)||0)+delta));if(!out.committed)throw new Error("Transaction refusée");return Number(out.snapshot.val())||0},
+  async colors(){const r=this.cosmeticsRef();if(!r)return {colors:{},equippedColor:""};const s=await get(r),v=s.val()||{};return {colors:v.colors||{},equippedColor:v.equippedColor||""}},
+  async addColor(id){if(!auth.currentUser)throw new Error("Non connecté");await set(ref(db,`cosmetics/${auth.currentUser.uid}/colors/${id}`),true)},
+  async equipColor(id){if(!auth.currentUser)throw new Error("Non connecté");await set(ref(db,`cosmetics/${auth.currentUser.uid}/equippedColor`),id||null)}
+};
 let uid=null,room=null,roomCode=null,WORDS=new Set(),WORD_FORM=new Map(),SHORT=[],dictReady=false,unsub=null,tick=null,lastTimeout="",disc=null,lastPrunedFor="",leaving=false,presenceTask=Promise.resolve(),profile=null,selectedAvatar="avatar01",solo=null,soloTick=null;
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1710,9 +1722,9 @@ async function pseudoDisponible(v){
 }
 const now=()=>Date.now(),other=s=>s==="p1"?"p2":"p1",nick=()=>profile?.nick||$("nick").value.trim().slice(0,12);
 const SESSION_KEY="mutation_active_room",NICK_KEY="mutation_nick";
-function saveSession(c){try{localStorage.setItem(SESSION_KEY,c);if(nick())localStorage.setItem(NICK_KEY,nick())}catch{}}
-function clearSession(){try{localStorage.removeItem(SESSION_KEY)}catch{}}
-async function restoreSession(){let c;try{c=localStorage.getItem(SESSION_KEY);let n=localStorage.getItem(NICK_KEY);if(n&&!$("nick").value)$("nick").value=n}catch{}if(!c||!uid)return;try{let s=await get(ref(db,"rooms/"+c));if(!s.exists()){clearSession();return}let d=s.val();if(d.lastActivity&&now()-d.lastActivity>=INACTIVE){try{await remove(ref(db,"rooms/"+c))}catch{}clearSession();return}let me=d.players?.p1?.uid===uid?"p1":d.players?.p2?.uid===uid?"p2":null;if(!me){clearSession();return}room=d;roomCode=c;await update(ref(db,`rooms/${c}/players/${me}`),{online:true,lastSeen:now()});subscribe(c)}catch{}}
+async function saveSession(c){if(!uid)return;try{await set(ref(db,`userSessions/${uid}/currentRoom`),c||null)}catch(e){console.warn("Session Firebase :",e)}}
+async function clearSession(){if(!uid)return;try{await remove(ref(db,`userSessions/${uid}/currentRoom`))}catch(e){console.warn("Session Firebase :",e)}}
+async function restoreSession(){if(!uid)return;try{const cs=await get(ref(db,`userSessions/${uid}/currentRoom`)),c=cs.val();if(!c)return;let s=await get(ref(db,"rooms/"+c));if(!s.exists()){await clearSession();return}let d=s.val();if(d.lastActivity&&now()-d.lastActivity>=INACTIVE){try{await remove(ref(db,"rooms/"+c))}catch{}await clearSession();return}let me=d.players?.p1?.uid===uid?"p1":d.players?.p2?.uid===uid?"p2":null;if(!me){await clearSession();return}room=d;roomCode=c;await update(ref(db,`rooms/${c}/players/${me}`),{online:true,lastSeen:now()});subscribe(c)}catch(e){console.warn("Restauration session Firebase :",e)}}
 function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}function screen(id){["home","lobby","game","solo","rankingPanel"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
 function slot(d=room){return d?.players?.p1?.uid===uid?"p1":d?.players?.p2?.uid===uid?"p2":null}
 function code(){let a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";return Array.from({length:5},()=>a[Math.random()*a.length|0]).join("")}
@@ -2061,7 +2073,6 @@ $("saveProfile").onclick=async()=>{
     profile.avatarId=selectedAvatar;
     $("profileName").textContent=profile.nick;
     $("profileAvatar").innerHTML=avatarMarkup(selectedAvatar);
-    try{localStorage.setItem(NICK_KEY,profile.nick)}catch{}
     syncMenuIdentity(); renderAvatarGallery(); refreshProfileEditor();
     if(status){status.textContent="Modifications enregistrées ✓";status.classList.remove("hidden")}
   }catch(e){
@@ -2788,6 +2799,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 .betaCurrencyBtn>span{grid-row:1/3;font-size:20px}.betaCurrencyBtn>b{font-size:15px;text-align:left}.betaCurrencyBtn>small{font-size:9px;text-align:left;opacity:.72;text-transform:uppercase;letter-spacing:.04em}
 .betaMotationBtn{color:#8dffb2!important}.betaCoinBtn{color:#ffe58a!important}
 .betaCurrencyBtn:hover{border-color:#2edcf5!important;transform:translateY(-1px)}
+.adminCurrencyPlus{grid-column:3;grid-row:1/3;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#123f4c;border:1px solid #39d8ef;color:#fff;font-size:18px;font-weight:900;line-height:1;margin-left:3px}.adminCurrencyPlus.hidden{display:none!important}.adminCurrencyPlus:active{transform:scale(.92)}
 @media(max-width:480px){.gameTabs{justify-content:center!important}.betaCurrencyBar{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}.betaCurrencyBtn{padding:8px 7px!important}.betaCurrencyBtn>b{font-size:14px}}
 #betaShopModal{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;margin:0!important;padding:14px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;z-index:100000!important}
 #betaShopModal.hidden{display:none!important}
@@ -2861,12 +2873,11 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 <script id="beta-mutacoins-boxes-script">
 (function(){
   const BETA_NICKS=new Set(["laping","lionus"]), WORD_COST=50, BOX_COST=100;
-  const K={coins:"mutation_wallet_v2_mutacoins",words:"mutation_wallet_v2_motations",inv:"mutation_beta_inventory",colors:"mutation_beta_color_inventory",equipped:"mutation_beta_color_equipped"};
   const rewards=[{v:5,p:59,rarity:"Commun",cls:"r-common"},{v:10,p:25,rarity:"Rare",cls:"r-rare"},{v:25,p:10,rarity:"Épique",cls:"r-epic"},{v:50,p:5,rarity:"Mythique",cls:"r-mythic"},{v:100,p:1,rarity:"Légendaire",cls:"r-legendary"}];
   const cosmetics=["🔴 Pseudo rouge","🔵 Pseudo bleu","🧬 Badge Mutation","⚡ Emoji Éclair","👑 Emoji Couronne","✨ Cadre brillant","🌌 Fond cosmique","🐱 Badge Chat"];
-  const $b=id=>document.getElementById(id),getN=(k,d=0)=>{const n=Number(localStorage.getItem(k));return Number.isFinite(n)?n:d};
-  const getInv=()=>{try{return JSON.parse(localStorage.getItem(K.inv)||"[]")}catch{return []}},setInv=a=>localStorage.setItem(K.inv,JSON.stringify(a));
-  const getColors=()=>{try{return JSON.parse(localStorage.getItem(K.colors)||"[]")}catch{return []}},setColors=a=>localStorage.setItem(K.colors,JSON.stringify(a));
+  const $b=id=>document.getElementById(id);
+  let wallet={mutacoins:0,motations:0},cosmeticState={colors:{},equippedColor:""},walletUnsub=null,cosmeticUnsub=null;
+  const getColors=()=>Object.keys(cosmeticState.colors||{}).filter(k=>cosmeticState.colors[k]);
   const animalColors=[
     {id:"mouse-light",name:"Souris claire",rarity:"Commun",kind:"solid",colors:["#b8c2c8"]},{id:"goldfish-light",name:"Poisson Rouge clair",rarity:"Commun",kind:"solid",colors:["#ff5a54"]},{id:"mantis-light",name:"Mante Religieuse claire",rarity:"Commun",kind:"solid",colors:["#6ee77c"]},{id:"panther-light",name:"Panthère Rose claire",rarity:"Commun",kind:"solid",colors:["#ff9fca"]},{id:"whale-light",name:"Baleine claire",rarity:"Commun",kind:"solid",colors:["#72b9ff"]},{id:"chick-light",name:"Poussin clair",rarity:"Commun",kind:"solid",colors:["#ffe66b"]},{id:"fox-light",name:"Renard clair",rarity:"Commun",kind:"solid",colors:["#ff9b4a"]},{id:"crow-light",name:"Corbeau clair",rarity:"Commun",kind:"solid",colors:["#60666d"]},{id:"camel-light",name:"Chameau clair",rarity:"Commun",kind:"solid",colors:["#c99a6b"]},
     {id:"mouse-dark",name:"Souris foncée",rarity:"Rare",kind:"solid",colors:["#66727a"]},{id:"goldfish-dark",name:"Poisson Rouge foncé",rarity:"Rare",kind:"solid",colors:["#b92f2b"]},{id:"mantis-dark",name:"Mante Religieuse foncée",rarity:"Rare",kind:"solid",colors:["#278d3b"]},{id:"panther-dark",name:"Panthère Rose foncée",rarity:"Rare",kind:"solid",colors:["#c74782"]},{id:"whale-dark",name:"Baleine foncée",rarity:"Rare",kind:"solid",colors:["#2866b1"]},{id:"chick-dark",name:"Poussin foncé",rarity:"Rare",kind:"solid",colors:["#d6ad18"]},{id:"fox-dark",name:"Renard foncé",rarity:"Rare",kind:"solid",colors:["#c95b18"]},{id:"crow-dark",name:"Corbeau foncé",rarity:"Rare",kind:"solid",colors:["#15191d"]},{id:"camel-dark",name:"Chameau foncé",rarity:"Rare",kind:"solid",colors:["#7e5435"]},
@@ -2877,8 +2888,8 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   function colorById(id){return animalColors.find(x=>x.id===id)}
   function rarityClass(r){return r==="Commun"?"rar-common":r==="Rare"?"rar-rare":r==="Épique"?"rar-epic":"rar-legendary"}
   function styledNickHTML(text,item){if(!item)return text.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));const esc=[...text].map(c=>c.replace(/[&<>]/g,d=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[d])));if(item.kind==="solid")return `<span style="color:${item.colors[0]}">${esc.join("")}</span>`;if(item.kind==="alternate")return esc.map((c,i)=>`<span style="color:${item.colors[i%2]}">${c}</span>`).join("");const grad=item.kind==="gold"?"linear-gradient(90deg,#7a4d00,#ffd45a,#fff0a0,#b77a00,#ffd45a)":item.kind==="silver"?"linear-gradient(90deg,#707b86,#f7fbff,#9aa8b5,#fff,#7d8994)":"linear-gradient(90deg,#ff4d4d,#ff9a32,#ffe14d,#4ee26f,#4da6ff,#b06cff,#ff73bc)";return `<span style="background:${grad};background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 10px #ffffff20;animation:betaShimmer 2.4s linear infinite">${esc.join("")}</span>`}
-  function applyEquippedColor(){if(!active())return;const item=colorById(localStorage.getItem(K.equipped)||"");for(const id of ["profileName","menuNick"]){const e=$b(id);if(!e)continue;const plain=(id==="profileName"?(profile?.nick||e.textContent):(profile?.nick||e.textContent));if(plain)e.innerHTML=styledNickHTML(plain,item)}}
-  function renderColorInventory(){const box=$b("betaColorInventory");if(!box)return;const owned=[...new Set(getColors())],eq=localStorage.getItem(K.equipped)||"";box.innerHTML=owned.length?owned.map(id=>{const x=colorById(id);if(!x)return"";return `<button class="betaColorItem ${eq===id?"equipped":""}" data-color-id="${id}" type="button"><span class="betaColorPreview">${styledNickHTML(profile?.nick||betaNick(),x)}</span>${x.name}<small class="${rarityClass(x.rarity)}">${x.rarity}</small></button>`}).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=()=>{localStorage.setItem(K.equipped,btn.dataset.colorId);renderColorInventory();applyEquippedColor()})}
+  function applyEquippedColor(){if(!active())return;const item=colorById(cosmeticState.equippedColor||"");const nick=betaNick();for(const id of ["profileName","menuNick"]){const e=$b(id);if(!e)continue;const plain=nick||e.textContent||"";if(plain)e.innerHTML=styledNickHTML(plain,item)}}
+  function renderColorInventory(){const box=$b("betaColorInventory");if(!box)return;const owned=[...new Set(getColors())],eq=cosmeticState.equippedColor||"";box.innerHTML=owned.length?owned.map(id=>{const x=colorById(id);if(!x)return"";return `<button class="betaColorItem ${eq===id?"equipped":""}" data-color-id="${id}" type="button"><span class="betaColorPreview">${styledNickHTML(betaNick(),x)}</span>${x.name}<small class="${rarityClass(x.rarity)}">${x.rarity}</small></button>`}).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=async()=>{try{await window.mutationEconomy.equipColor(btn.dataset.colorId);cosmeticState.equippedColor=btn.dataset.colorId;renderColorInventory();applyEquippedColor()}catch(e){toast("Équipement refusé")}})}
   function openColorInventory(){if(!active())return;renderColorInventory();$b("betaColorModal").classList.remove("hidden")}
   function drawRarity(){let n=Math.random()*100;return rarityOdds.find(x=>n<x.end)||rarityOdds[0]}
   function drawAnimalColor(rarity){const pool=animalColors.filter(x=>x.rarity===rarity);return pool[Math.floor(Math.random()*pool.length)]}
@@ -2889,20 +2900,10 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const candidates=[$b("menuNick")?.textContent,$b("nick")?.value,$b("profileName")?.textContent];
     return String(candidates.find(v=>BETA_NICKS.has(String(v||"").trim().toLowerCase()))||candidates.find(v=>String(v||"").trim())||"").trim();
   };
-  const active=()=>BETA_NICKS.has(betaNick().toLowerCase());
+  const ADMIN_UIDS=new Set(["fhSFf6mNagVhcM0OCzGjySLBA212","yhLytuIA1PgJ3vhNYBMOqRNzose2"]);
+  const isAdmin=()=>ADMIN_UIDS.has(window.mutationEconomy?.auth?.currentUser?.uid||"");
+  const active=()=>!!window.mutationEconomy?.auth?.currentUser && !window.mutationEconomy.auth.currentUser.isAnonymous;
   let rolling=false,colorWheelRolling=false,wheelRotation=0;
-  function startKey(){return "mutation_wallet_v2_granted_50000_"+betaNick().toLowerCase()}
-  function ensureBetaStart(){
-    if(!active())return;
-    const k=startKey();
-    // Portefeuille V2 : nouvelles clés indépendantes des anciens soldes 0/15000.
-    // Une seule dotation de départ, puis les gains/dépenses persistent normalement.
-    if(localStorage.getItem(k)!=="1"){
-      localStorage.setItem(K.coins,"50000");
-      localStorage.setItem(K.words,"50000");
-      localStorage.setItem(k,"1");
-    }
-  }
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
   function pickVisual(){return reward()}
   function lootHTML(x){return `<div class="betaLoot ${x.cls}"><div>${x.v} 🪙</div></div>`}
@@ -2914,20 +2915,20 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     return {bar,m,c};
   }
   function refresh(){
-    ensureBetaStart();
     const on=active(),cur=ensureCurrencyBar(),mainMenuVisible=!!$b("playMenu")&&!$b("playMenu").classList.contains("hidden");if(cur.bar)cur.bar.classList.toggle("hidden",!on||!mainMenuVisible);if($b("betaColorEquipBtn"))$b("betaColorEquipBtn").classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");$b("betaColorModal")?.classList.add("hidden");return}applyEquippedColor()
-    const c=getN(K.coins),w=getN(K.words),inv=getInv();if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
+    const c=wallet.mutacoins||0,w=wallet.motations||0;if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
     $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`🧬 ${w} Motation${w>1?"s":""}`;
     $b("betaRollBtn").disabled=rolling||w<WORD_COST;if($b("betaWheelSpin"))$b("betaWheelSpin").disabled=colorWheelRolling||c<BOX_COST;
-    $b("betaInventory").innerHTML=inv.length?inv.map(x=>`<span class="betaItem">${x}</span>`).join(""):'<span class="small">Aucun cosmétique pour le moment.</span>';
+    if($b("betaInventory"))$b("betaInventory").innerHTML='<span class="small">Les cosmétiques sont enregistrés sur ton compte Firebase.</span>';
+    for(const id of ["adminAddMotations","adminAddMutacoins"]){const e=$b(id);if(e)e.classList.toggle("hidden",!isAdmin())}
   }
   function showTab(which){const coins=which==="coins";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",coins);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",!coins)}
   function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab(tab);refresh()}
-  window.betaMutationWordEarned=function(source){if(!active())return;ensureBetaStart();const next=getN(K.words)+1;localStorage.setItem(K.words,String(next));refresh();};
+  window.betaMutationWordEarned=async function(source){if(!active())return;try{await window.mutationEconomy.changeWallet("motations",1)}catch(e){console.warn("Gain Motation refusé",e)}};
   $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden")};$b("betaShopClose").onclick=closeShop;$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();closeShop()};
   $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
-  $b("betaRollBtn").onclick=()=>{
-    if(!active()||rolling||getN(K.words)<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";localStorage.setItem(K.words,String(getN(K.words)-WORD_COST));refresh();
+  $b("betaRollBtn").onclick=async()=>{
+    if(!active()||rolling||wallet.motations<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";try{await window.mutationEconomy.changeWallet("motations",-WORD_COST)}catch(e){rolling=false;toast("Paiement refusé");return}
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
     // Le repère blanc peut s'arrêter n'importe où sur la carte gagnante, y compris près de ses bords.
     // Une fois la roulette arrêtée, la carte glisse ensuite jusqu'au centre avant d'afficher le gain.
@@ -2954,8 +2955,8 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       setTimeout(()=>{
         track.style.transition="transform .48s cubic-bezier(.22,.78,.2,1)";
         track.style.transform=`translate3d(${-centeredTarget}px,0,0)`;
-        setTimeout(()=>{
-        const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));
+        setTimeout(async()=>{
+        try{await window.mutationEconomy.changeWallet("mutacoins",win.v)}catch(e){console.warn("Gain Mutacoins refusé",e)};
         const winner=track.children[28];
         if(winner){
           winner.classList.add("betaWinner");
@@ -2968,11 +2969,19 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     };
     requestAnimationFrame(animateRoll);
   };
-  $b("betaWheelSpin").onclick=()=>{if(!active()||colorWheelRolling)return;let c=getN(K.coins);if(c<BOX_COST){toast("Pas assez de Mutacoins");return}c-=BOX_COST;localStorage.setItem(K.coins,String(c));refresh();colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),sectorCenter=45+rarityIndex*90,jitter=(Math.random()*44-22),land=sectorCenter+jitter,targetMod=(360-(land%360))%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(()=>{const owned=getColors();if(!owned.includes(item.id)){owned.push(item.id);setColors(owned)}$b("betaWheelResult").innerHTML=`<span class="${rarityClass(item.rarity)}">${item.rarity}</span> — ${item.name}<small>${owned.filter(x=>x===item.id).length?"Ajouté à ton inventaire de couleurs.":"Couleur obtenue."}</small>`;colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
+  $b("betaWheelSpin").onclick=async()=>{if(!active()||colorWheelRolling)return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}try{await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST)}catch(e){toast("Paiement refusé");return}colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),sectorCenter=45+rarityIndex*90,jitter=(Math.random()*44-22),land=sectorCenter+jitter,targetMod=(360-(land%360))%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const owned=getColors(),isNew=!owned.includes(item.id);if(isNew){try{await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=true}catch(e){console.warn("Gain cosmétique refusé",e)}}$b("betaWheelResult").innerHTML=`<span class="${rarityClass(item.rarity)}">${item.rarity}</span> — ${item.name}<small>${isNew?"Ajouté à ton inventaire de couleurs.":"Déjà possédée."}</small>`;colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=openColorInventory;$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});
-  const identityObserver=new MutationObserver(refresh);
+  function bindFirebaseState(){
+    const eco=window.mutationEconomy;if(!eco?.auth?.currentUser)return;
+    walletUnsub?.();cosmeticUnsub?.();
+    walletUnsub=eco.onValue(eco.walletRef(),snap=>{const v=snap.val()||{};wallet={mutacoins:Number(v.mutacoins)||0,motations:Number(v.motations)||0};refresh()});
+    cosmeticUnsub=eco.onValue(eco.cosmeticsRef(),snap=>{const v=snap.val()||{};cosmeticState={colors:v.colors||{},equippedColor:v.equippedColor||""};refresh();renderColorInventory()});
+  }
+  const identityObserver=new MutationObserver(()=>{bindFirebaseState();refresh()});
   for(const id of ["profileName","menuNick"]){const n=$b(id);if(n)identityObserver.observe(n,{childList:true,subtree:true,characterData:true})}
-  setInterval(()=>{if(!rolling&&!colorWheelRolling)refresh()},1500);refresh();
+  const adminAdd=async(field,e)=>{e.preventDefault();e.stopPropagation();if(!isAdmin())return;try{await window.mutationEconomy.changeWallet(field,1000);toast(`+1000 ${field==="mutacoins"?"Mutacoins":"Motations"}`)}catch(err){toast("Ajout refusé par Firebase")}};
+  $b("adminAddMotations").onclick=e=>adminAdd("motations",e);$b("adminAddMutacoins").onclick=e=>adminAdd("mutacoins",e);
+  setInterval(()=>{if(!rolling&&!colorWheelRolling)refresh()},3000);bindFirebaseState();refresh();
 })();
 </script>
 
