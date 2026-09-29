@@ -2435,6 +2435,7 @@ $("soloForm").onsubmit=e=>{
   if(!dictReady||!WORDS.has(key(w))){antiInvalid("solo: mot hors dictionnaire");msg("soloMsg",dictReady?"Absent du dictionnaire.":"Dictionnaire non chargé.","bad");clearErroredInput("soloAnswer");return}
   antiValidMove();
   w=WORD_FORM.get(key(w))||w;solo.current=w;solo.history.push(w);solo.score++;solo.startedAt=now();
+  window.betaMutationWordEarned?.("solo");
   $("soloAnswer").value="";msg("soloMsg","","");showValidCheck("soloValidCheck");renderSolo();refocusInput("soloAnswer");
 };
 
@@ -2504,7 +2505,7 @@ async function revote(){let a=starts();await runTransaction(ref(db,'rooms/'+room
 async function endRound(win,text){let sols=possible(room?.game?.current,3);await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||d.status!=="playing")return;let loser=other(win);d.players[loser].lives=Math.max(0,(d.players[loser].lives??3)-1);d.status=d.players[loser].lives<=0?"finished":"roundEnd";d.game.message=d.status==="finished"?`${d.players[win].nick} remporte la partie !`:text+` ${d.players[loser].nick} perd un ❤️.`;d.game.solutions=sols;d.game.roundReady={};d.game.roundEndedAt=now();d.lastActivity=now();d.deleteAfter=now()+(d.status==="finished"?CLOSED:TTL);return d})}
 $('nextRound').onclick=async()=>{if(room?.status!=='roundEnd')return;let me=slot();await runTransaction(ref(db,'rooms/'+roomCode),d=>{if(!d||d.status!=='roundEnd')return;d.game.roundReady=d.game.roundReady||{};d.game.roundReady[me]=true;if(d.game.roundReady.p1&&d.game.roundReady.p2){let a=starts(),round=(d.game.round||1)+1;if(a.length<3)return;d.status='voting';d.game={round,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:'',voteStartedAt:now()};d.deleteAfter=now()+TTL}return d})};
 async function abandon(op){let c=roomCode;if(!c)return;await runTransaction(ref(db,"rooms/"+c),d=>{if(!d||d.players?.[op]?.online!==false||now()-(d.players[op].lastSeen||now())<GRACE)return;return null})}
-$("form").onsubmit=async e=>{e.preventDefault();let me=slot(),g=room?.game,w=norm($("answer").value),state=room?.status;if(!w||!["opening","playing"].includes(state)||(state==="playing"&&me!==g.turn))return;if(hist(g).some(x=>key(x.word)===key(w))){msg("gameMsg","Mot déjà joué.","bad");clearErroredInput("answer");return}if(!mutation(g.current,w)){msg("gameMsg","Ajoute, retire ou remplace exactement une lettre.","bad");refocusInput("answer");return}if(!dictReady||!WORDS.has(key(w))){msg("gameMsg",dictReady?"Absent du dictionnaire.":"Dictionnaire non chargé.","bad");clearErroredInput("answer");return}w=WORD_FORM.get(key(w))||w;let cur=g.current,seq=g.seq||0,res=await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||!["opening","playing"].includes(d.status)||d.game.current!==cur||(d.game.seq||0)!==seq||(d.status==="playing"&&d.game.turn!==me)||hist(d.game).some(x=>key(x.word)===key(w)))return;let n=seq+1;d.game.current=w;d.game.seq=n;d.game.totalWords=(d.game.totalWords||0)+1;d.game.history=d.game.history||{};d.game.history[n]={seq:n,word:w,by:me,at:now()};d.status="playing";d.game.turn=other(me);d.game.turnStartedAt=now();d.game.message="";d.lastActivity=now();d.deleteAfter=now()+TTL;return d});if(res.committed){$("answer").value="";showValidCheck("gameValidCheck");refocusInput("answer")}};
+$("form").onsubmit=async e=>{e.preventDefault();let me=slot(),g=room?.game,w=norm($("answer").value),state=room?.status;if(!w||!["opening","playing"].includes(state)||(state==="playing"&&me!==g.turn))return;if(hist(g).some(x=>key(x.word)===key(w))){msg("gameMsg","Mot déjà joué.","bad");clearErroredInput("answer");return}if(!mutation(g.current,w)){msg("gameMsg","Ajoute, retire ou remplace exactement une lettre.","bad");refocusInput("answer");return}if(!dictReady||!WORDS.has(key(w))){msg("gameMsg",dictReady?"Absent du dictionnaire.":"Dictionnaire non chargé.","bad");clearErroredInput("answer");return}w=WORD_FORM.get(key(w))||w;let cur=g.current,seq=g.seq||0,res=await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||!["opening","playing"].includes(d.status)||d.game.current!==cur||(d.game.seq||0)!==seq||(d.status==="playing"&&d.game.turn!==me)||hist(d.game).some(x=>key(x.word)===key(w)))return;let n=seq+1;d.game.current=w;d.game.seq=n;d.game.totalWords=(d.game.totalWords||0)+1;d.game.history=d.game.history||{};d.game.history[n]={seq:n,word:w,by:me,at:now()};d.status="playing";d.game.turn=other(me);d.game.turnStartedAt=now();d.game.message="";d.lastActivity=now();d.deleteAfter=now()+TTL;return d});if(res.committed){window.betaMutationWordEarned?.("multi");$("answer").value="";showValidCheck("gameValidCheck");refocusInput("answer")}};
 async function leave(){let c=roomCode,me=slot();if(!c||!me)return screen("home");if(!confirm("Êtes-vous sûr(e) de vouloir quitter ?"))return;let r=ref(db,"rooms/"+c);leaving=true;if(unsub){unsub();unsub=null}clearSession();roomCode=null;try{await presenceTask}catch{}try{if(disc){await disc.cancel();disc=null}await remove(r)}catch(e){leaving=false;roomCode=c;subscribe(c);return msg(room?.status==="lobby"?"lobbyMsg":"gameMsg","Impossible de supprimer la salle : "+(e?.code||e?.message||"erreur Firebase"),"bad")}room=null;clearInterval(tick);screen("home");msg("homeMsg","Tu as quitté la salle.","ok")}
 $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=async()=>{if(room?.status!=="finished")return;let me=slot();await runTransaction(ref(db,"rooms/"+roomCode),d=>{if(!d||d.status!=="finished"||!d.players?.p2)return;d.game=d.game||{};d.game.replayVotes=d.game.replayVotes||{};d.game.replayVotes[me]=true;if(d.game.replayVotes.p1&&d.game.replayVotes.p2){let a=starts();if(a.length<3)return;d.players.p1.lives=d.players.p2.lives=3;d.status="voting";d.game={round:1,choices:{0:a[0],1:a[1],2:a[2]},votes:{},history:{},seq:0,totalWords:0,message:"",voteStartedAt:now()};d.lastActivity=now();d.deleteAfter=now()+TTL}return d})};</script>
 
@@ -2773,62 +2774,68 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 })();
 </script>
 
-
-<!-- V105 — centrage des confirmations sur le viewport réellement visible (mobile Chrome inclus) -->
-<style id="visual-viewport-confirm-centering">
-#resetSoloModal,#deleteProfileModal{
-  position:fixed!important;
-  inset:0!important;
-  width:auto!important;
-  height:auto!important;
-  min-height:0!important;
-  margin:0!important;
-  padding:0!important;
-  overflow:visible!important;
-  z-index:1000000!important;
-}
-#resetSoloModal:not(.hidden),#deleteProfileModal:not(.hidden){display:block!important}
-#resetSoloModal.hidden,#deleteProfileModal.hidden{display:none!important}
-#resetSoloModal::before,#deleteProfileModal::before{
-  content:"";position:fixed;inset:0;background:#000a;pointer-events:auto;
-}
-#resetSoloModal .modalCard,#deleteProfileModal .modalCard{
-  position:fixed!important;
-  left:var(--vv-center-x,50vw)!important;
-  top:var(--vv-center-y,50dvh)!important;
-  right:auto!important;bottom:auto!important;
-  transform:translate(-50%,-50%)!important;
-  margin:0!important;
-  width:min(390px,calc(var(--vv-width,100vw) - 24px))!important;
-  max-width:390px!important;
-  max-height:calc(var(--vv-height,100dvh) - 24px)!important;
-  overflow:auto!important;
-  box-sizing:border-box!important;
-  z-index:1!important;
-}
+<style id="beta-mutacoins-boxes">
+#betaEconomyHud{position:fixed;right:14px;bottom:14px;z-index:900;display:flex;gap:8px;align-items:center}
+#betaCoins,#betaShopBtn{width:auto!important;margin:0!important;padding:9px 12px!important;border-radius:999px!important;background:#0b303a!important;color:#fff!important;border:1px solid #2a6878!important;box-shadow:0 8px 24px #0007;font-size:13px!important}
+#betaCoins{font-weight:900;color:#ffe58a!important;cursor:default!important}
+#betaShopBtn:hover{background:#25cbe5!important;color:#061b22!important}
+#betaShopModal{z-index:100000!important}.betaShopCard{max-width:430px!important}.betaShopBalance{text-align:center;font-weight:900;color:#ffe58a;margin:6px 0 14px}.betaBox{padding:14px;border:1px solid #2a6878;border-radius:15px;background:#0b2632;margin:10px 0}.betaBox h3{margin:0 0 5px}.betaBox p{margin:0;color:#a9cad3;font-size:13px;line-height:1.4}.betaInventory{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.betaItem{padding:6px 8px;border-radius:9px;background:#143f49;font-size:12px}.betaToast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:100001;background:#092a32;border:1px solid #63ef55;color:#fff;padding:13px 18px;border-radius:14px;box-shadow:0 14px 40px #0009;font-weight:850;text-align:center;max-width:calc(100vw - 30px)}
+@media(max-width:480px){#betaEconomyHud{right:10px;bottom:10px}#betaCoins,#betaShopBtn{padding:8px 10px!important;font-size:12px!important}}
 </style>
-<script id="visual-viewport-confirm-centering-script">
+<div id="betaEconomyHud" class="hidden" aria-label="Bêta économie Mutation">
+  <div id="betaCoins">🪙 0</div><button id="betaShopBtn" type="button">Boutique</button>
+</div>
+<div id="betaShopModal" class="modal hidden">
+  <div class="modalCard betaShopCard">
+    <button id="betaShopClose" class="modalClose" type="button" aria-label="Fermer">×</button>
+    <h2>Boutique 🧬</h2>
+    <div id="betaShopBalance" class="betaShopBalance">🪙 0 Mutacoins</div>
+    <div class="betaBox"><h3>Mutation Box</h3><p>Contient 1 cosmétique aléatoire. Prototype privé.</p><button id="betaBuyBox" type="button">Ouvrir — 100 🪙</button></div>
+    <div class="small center">Tous les 25 mots réussis : tirage de Mutacoins.</div>
+    <div id="betaProgress" class="small center" style="margin-top:7px"></div>
+    <h3 style="margin-top:18px">Inventaire</h3><div id="betaInventory" class="betaInventory"></div>
+  </div>
+</div>
+<script id="beta-mutacoins-boxes-script">
 (function(){
-  function syncVisibleViewport(){
-    var vv=window.visualViewport;
-    var left=vv?vv.offsetLeft:0, top=vv?vv.offsetTop:0;
-    var w=vv?vv.width:window.innerWidth, h=vv?vv.height:window.innerHeight;
-    var root=document.documentElement;
-    root.style.setProperty('--vv-width',w+'px');
-    root.style.setProperty('--vv-height',h+'px');
-    root.style.setProperty('--vv-center-x',(left+w/2)+'px');
-    root.style.setProperty('--vv-center-y',(top+h/2)+'px');
+  /* BÊTA PRIVÉE : pour le prototype, l'accès est limité au pseudo exact Laping.
+     Avant une ouverture publique, remplacer ce verrou d'affichage par un UID autorisé
+     et déplacer l'attribution/dépense des crédits côté serveur/Firebase sécurisé. */
+  const BETA_NICK="Laping", COST=100;
+  const K={coins:"mutation_beta_coins",words:"mutation_beta_words",inv:"mutation_beta_inventory"};
+  const rewards=[{v:5,p:55},{v:10,p:25},{v:20,p:12},{v:50,p:6},{v:100,p:2}];
+  const cosmetics=["🔴 Pseudo rouge","🔵 Pseudo bleu","🧬 Badge Mutation","⚡ Emoji Éclair","👑 Emoji Couronne","✨ Cadre brillant","🌌 Fond cosmique","🐱 Badge Chat"];
+  const $b=id=>document.getElementById(id);
+  const getN=(k,d=0)=>{const n=Number(localStorage.getItem(k));return Number.isFinite(n)?n:d};
+  const getInv=()=>{try{return JSON.parse(localStorage.getItem(K.inv)||"[]")}catch{return []}};
+  const setInv=a=>localStorage.setItem(K.inv,JSON.stringify(a));
+  const active=()=>($b("profileName")?.textContent||"").trim()===BETA_NICK;
+  function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x.v}return 5}
+  function toast(t){let e=document.createElement("div");e.className="betaToast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
+  function refresh(){
+    const on=active();$b("betaEconomyHud")?.classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");return}
+    const c=getN(K.coins),w=getN(K.words),inv=getInv();
+    $b("betaCoins").textContent=`🪙 ${c}`;$b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;
+    $b("betaProgress").textContent=`Progression : ${w%25}/25 mots avant le prochain tirage`;
+    $b("betaBuyBox").disabled=c<COST;
+    $b("betaInventory").innerHTML=inv.length?inv.map(x=>`<span class="betaItem">${x}</span>`).join(""):'<span class="small">Aucun cosmétique pour le moment.</span>';
   }
-  syncVisibleViewport();
-  window.addEventListener('resize',syncVisibleViewport,{passive:true});
-  window.addEventListener('orientationchange',syncVisibleViewport,{passive:true});
-  if(window.visualViewport){
-    visualViewport.addEventListener('resize',syncVisibleViewport,{passive:true});
-    visualViewport.addEventListener('scroll',syncVisibleViewport,{passive:true});
-  }
-  ['resetSoloBest','deleteProfileData'].forEach(function(id){
-    document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#'+id)) requestAnimationFrame(syncVisibleViewport);},true);
-  });
+  window.betaMutationWordEarned=function(){
+    if(!active())return;
+    let w=getN(K.words)+1;localStorage.setItem(K.words,String(w));
+    if(w%25===0){const gain=reward(),c=getN(K.coins)+gain;localStorage.setItem(K.coins,String(c));toast(`🎁 25 mots ! +${gain} Mutacoins`)}
+    refresh();
+  };
+  $b("betaShopBtn").onclick=()=>{$b("betaShopModal").classList.remove("hidden");refresh()};
+  $b("betaShopClose").onclick=()=>{$b("betaShopModal").classList.add("hidden")};
+  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal"))$b("betaShopModal").classList.add("hidden")});
+  $b("betaBuyBox").onclick=()=>{
+    if(!active())return;let c=getN(K.coins);if(c<COST)return;
+    c-=COST;localStorage.setItem(K.coins,String(c));
+    const item=cosmetics[Math.floor(Math.random()*cosmetics.length)],inv=getInv();inv.push(item);setInv(inv);toast(`📦 ${item}`);refresh();
+  };
+  const n=$b("profileName");if(n)new MutationObserver(refresh).observe(n,{childList:true,subtree:true,characterData:true});
+  setInterval(refresh,1500);refresh();
 })();
 </script>
 
