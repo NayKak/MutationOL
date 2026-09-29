@@ -2949,7 +2949,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 #betaSellAllConfirm .betaSellAllConfirmCard{pointer-events:auto!important}
 #betaSellAllConfirmYes,#betaSellAllConfirmNo{pointer-events:auto!important;cursor:pointer!important;opacity:1!important}
 </style>
-<div id="betaSellAllConfirm" class="betaActionSheet hidden"><div class="betaActionCard betaSellAllConfirmCard"><h3>Vendre les doublons ?</h3><p id="betaSellAllConfirmText"></p><p class="betaSellAllKeep">Un exemplaire de chaque objet sera conservé.</p><div class="betaActionButtons"><button id="betaSellAllConfirmYes" type="button">Vendre</button><button id="betaSellAllConfirmNo" type="button" class="secondary">Annuler</button></div></div></div>
+<div id="betaSellAllConfirm" class="betaActionSheet hidden"><div class="betaActionCard betaSellAllConfirmCard"><h3>Vendre les doublons ?</h3><p id="betaSellAllConfirmText"></p><p class="betaSellAllKeep">Un exemplaire de chaque objet sera conservé.</p><div class="betaActionButtons"><button id="betaSellAllConfirmYes" type="button" onclick="window.betaSellAllConfirmAction && window.betaSellAllConfirmAction('sell', event); return false;">Vendre</button><button id="betaSellAllConfirmNo" type="button" class="secondary" onclick="window.betaSellAllConfirmAction && window.betaSellAllConfirmAction('cancel', event); return false;">Annuler</button></div></div></div>
 <div id="betaInventoryAction" class="betaActionSheet hidden"><div class="betaActionCard"><h3 id="betaActionTitle">Objet</h3><p id="betaActionInfo"></p><div class="betaActionButtons"><button id="betaActionEquip" type="button">Équiper</button><button id="betaActionSell" type="button" class="secondary">Vendre</button><button id="betaActionCancel" type="button" class="secondary">Annuler</button></div></div></div>
 <div id="betaColorModal" class="hidden"><div class="betaColorCard"><button id="betaColorClose" class="modalClose" type="button">×</button><h2>Couleurs</h2><p class="betaColorIntro">Équipe une couleur obtenue dans tes tirages.</p><div id="betaColorInventory" class="betaColorGrid"></div><button id="betaColorBack" type="button" class="secondary">← Retour au profil</button></div></div><div id="betaTypeModal" class="hidden"><div class="betaColorCard"><button id="betaTypeClose" class="modalClose" type="button">×</button><h2 id="betaTypeTitle">Cosmétiques</h2><p id="betaTypeIntro" class="betaColorIntro"></p><div id="betaTypeInventory" class="betaColorGrid"></div><button id="betaTypeBack" type="button" class="secondary">← Retour au profil</button></div></div>
 <style id="beta-direct-wheel-polish">
@@ -3154,22 +3154,28 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const totalItems=duplicates.reduce((sum,x)=>sum+(x.qty-1),0);
     const totalValue=duplicates.reduce((sum,x)=>sum+(x.qty-1)*(sellValues[x.item.rarity]||0),0);
     pendingSellAll={duplicates,totalItems,totalValue};
+    $b("betaSellAllConfirmYes").disabled=false;
+    $b("betaSellAllConfirmNo").disabled=false;
     $b("betaSellAllConfirmText").innerHTML=`Vendre <strong>${totalItems} doublon${totalItems>1?"s":""}</strong> pour <strong>${totalValue} 🧬</strong> ?`;
     $b("betaSellAllConfirm").classList.remove("hidden");
   };
-  $b("betaSellAllConfirmNo").onclick=e=>{
-    e.preventDefault();e.stopPropagation();
-    pendingSellAll=null;
-    $b("betaSellAllConfirm").classList.add("hidden");
-  };
-  $b("betaSellAllConfirmYes").onclick=async e=>{
-    e.preventDefault();e.stopPropagation();
+  window.betaSellAllConfirmAction=async(action,e)=>{
+    if(e){e.preventDefault();e.stopPropagation()}
+    const modal=$b("betaSellAllConfirm");
+    if(action==="cancel"){
+      pendingSellAll=null;
+      modal?.classList.add("hidden");
+      return;
+    }
+    if(action!=="sell")return;
     const job=pendingSellAll;
-    if(!job)return;
+    if(!job){toast("Vente introuvable, rouvre la confirmation");return}
     pendingSellAll=null;
-    $b("betaSellAllConfirm").classList.add("hidden");
+    modal?.classList.add("hidden");
     await executeSellAllDuplicates(job.duplicates,job.totalItems);
   };
+  $b("betaSellAllConfirmNo").onclick=e=>window.betaSellAllConfirmAction("cancel",e);
+  $b("betaSellAllConfirmYes").onclick=e=>window.betaSellAllConfirmAction("sell",e);
   $b("betaSellAllConfirm").addEventListener("click",e=>{
     if(e.target===$b("betaSellAllConfirm")){
       e.preventDefault();e.stopPropagation();
