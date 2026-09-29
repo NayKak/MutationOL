@@ -2876,7 +2876,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const rewards=[{v:5,p:59,rarity:"Commun",cls:"r-common"},{v:10,p:25,rarity:"Rare",cls:"r-rare"},{v:25,p:10,rarity:"Épique",cls:"r-epic"},{v:50,p:5,rarity:"Mythique",cls:"r-mythic"},{v:100,p:1,rarity:"Légendaire",cls:"r-legendary"}];
   const cosmetics=["🔴 Pseudo rouge","🔵 Pseudo bleu","🧬 Badge Mutation","⚡ Emoji Éclair","👑 Emoji Couronne","✨ Cadre brillant","🌌 Fond cosmique","🐱 Badge Chat"];
   const $b=id=>document.getElementById(id);
-  let wallet={mutacoins:0,motations:0},cosmeticState={colors:{},equippedColor:""},walletUnsub=null,cosmeticUnsub=null;
+  let wallet={mutacoins:0,motations:0},cosmeticState={colors:{},equippedColor:""};
   const getColors=()=>Object.keys(cosmeticState.colors||{}).filter(k=>cosmeticState.colors[k]);
   const animalColors=[
     {id:"mouse-light",name:"Souris claire",rarity:"Commun",kind:"solid",colors:["#b8c2c8"]},{id:"goldfish-light",name:"Poisson Rouge clair",rarity:"Commun",kind:"solid",colors:["#ff5a54"]},{id:"mantis-light",name:"Mante Religieuse claire",rarity:"Commun",kind:"solid",colors:["#6ee77c"]},{id:"panther-light",name:"Panthère Rose claire",rarity:"Commun",kind:"solid",colors:["#ff9fca"]},{id:"whale-light",name:"Baleine claire",rarity:"Commun",kind:"solid",colors:["#72b9ff"]},{id:"chick-light",name:"Poussin clair",rarity:"Commun",kind:"solid",colors:["#ffe66b"]},{id:"fox-light",name:"Renard clair",rarity:"Commun",kind:"solid",colors:["#ff9b4a"]},{id:"crow-light",name:"Corbeau clair",rarity:"Commun",kind:"solid",colors:["#60666d"]},{id:"camel-light",name:"Chameau clair",rarity:"Commun",kind:"solid",colors:["#c99a6b"]},
@@ -2924,11 +2924,11 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   }
   function showTab(which){const coins=which==="coins";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",coins);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",!coins)}
   function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab(tab);refresh()}
-  window.betaMutationWordEarned=async function(source){if(!active())return;try{await window.mutationEconomy.changeWallet("motations",1)}catch(e){console.warn("Gain Motation refusé",e)}};
+  window.betaMutationWordEarned=async function(source){if(!active())return;try{wallet.motations=await window.mutationEconomy.changeWallet("motations",1);refresh()}catch(e){console.warn("Gain Motation refusé",e)}};
   $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden")};$b("betaShopClose").onclick=closeShop;$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();closeShop()};
   $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
   $b("betaRollBtn").onclick=async()=>{
-    if(!active()||rolling||wallet.motations<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";try{await window.mutationEconomy.changeWallet("motations",-WORD_COST)}catch(e){rolling=false;toast("Paiement refusé");return}
+    if(!active()||rolling||wallet.motations<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";try{wallet.motations=await window.mutationEconomy.changeWallet("motations",-WORD_COST);refresh()}catch(e){rolling=false;toast("Paiement refusé");return}
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
     // Le repère blanc peut s'arrêter n'importe où sur la carte gagnante, y compris près de ses bords.
     // Une fois la roulette arrêtée, la carte glisse ensuite jusqu'au centre avant d'afficher le gain.
@@ -2956,7 +2956,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
         track.style.transition="transform .48s cubic-bezier(.22,.78,.2,1)";
         track.style.transform=`translate3d(${-centeredTarget}px,0,0)`;
         setTimeout(async()=>{
-        try{await window.mutationEconomy.changeWallet("mutacoins",win.v)}catch(e){console.warn("Gain Mutacoins refusé",e)};
+        try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",win.v)}catch(e){console.warn("Gain Mutacoins refusé",e)};
         const winner=track.children[28];
         if(winner){
           winner.classList.add("betaWinner");
@@ -2969,25 +2969,27 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     };
     requestAnimationFrame(animateRoll);
   };
-  $b("betaWheelSpin").onclick=async()=>{if(!active()||colorWheelRolling)return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}try{await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST)}catch(e){toast("Paiement refusé");return}colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),sectorCenter=45+rarityIndex*90,jitter=(Math.random()*44-22),land=sectorCenter+jitter,targetMod=(360-(land%360))%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const owned=getColors(),isNew=!owned.includes(item.id);if(isNew){try{await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=true}catch(e){console.warn("Gain cosmétique refusé",e)}}$b("betaWheelResult").innerHTML=`<span class="${rarityClass(item.rarity)}">${item.rarity}</span> — ${item.name}<small>${isNew?"Ajouté à ton inventaire de couleurs.":"Déjà possédée."}</small>`;colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
+  $b("betaWheelSpin").onclick=async()=>{if(!active()||colorWheelRolling)return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST);refresh()}catch(e){toast("Paiement refusé");return}colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),sectorCenter=45+rarityIndex*90,jitter=(Math.random()*44-22),land=sectorCenter+jitter,targetMod=(360-(land%360))%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const owned=getColors(),isNew=!owned.includes(item.id);if(isNew){try{await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=true}catch(e){console.warn("Gain cosmétique refusé",e)}}$b("betaWheelResult").innerHTML=`<span class="${rarityClass(item.rarity)}">${item.rarity}</span> — ${item.name}<small>${isNew?"Ajouté à ton inventaire de couleurs.":"Déjà possédée."}</small>`;colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=openColorInventory;$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});
-  let boundUid="";
-  function bindFirebaseState(){
+  let loadedUid="",loadingState=false;
+  async function loadFirebaseState(force=false){
     const eco=window.mutationEconomy,u=eco?.auth?.currentUser;
-    if(!u){
-      if(boundUid){walletUnsub?.();cosmeticUnsub?.();walletUnsub=cosmeticUnsub=null;boundUid="";}
-      wallet={mutacoins:0,motations:0};cosmeticState={colors:{},equippedColor:""};refresh();return;
-    }
-    if(boundUid===u.uid)return;
-    walletUnsub?.();cosmeticUnsub?.();boundUid=u.uid;
-    walletUnsub=eco.onValue(eco.walletRef(),snap=>{const v=snap.val()||{};wallet={mutacoins:Number(v.mutacoins)||0,motations:Number(v.motations)||0};refresh()});
-    cosmeticUnsub=eco.onValue(eco.cosmeticsRef(),snap=>{const v=snap.val()||{};cosmeticState={colors:v.colors||{},equippedColor:v.equippedColor||""};refresh();renderColorInventory()});
+    if(!u){loadedUid="";wallet={mutacoins:0,motations:0};cosmeticState={colors:{},equippedColor:""};refresh();return}
+    if(loadingState||(!force&&loadedUid===u.uid))return;
+    loadingState=true;
+    try{
+      const [w,c]=await Promise.all([eco.wallet(),eco.colors()]);
+      wallet=w;cosmeticState=c;loadedUid=u.uid;refresh();renderColorInventory();
+    }catch(err){console.warn("Chargement économie Firebase refusé",err)}
+    finally{loadingState=false}
   }
-  const adminAdd=async(field,e)=>{e.preventDefault();e.stopPropagation();if(!isAdmin())return;try{await window.mutationEconomy.changeWallet(field,1000);toast(`+1000 ${field==="mutacoins"?"Mutacoins":"Motations"}`)}catch(err){toast("Ajout refusé par Firebase")}};
+  const adminAdd=async(field,e)=>{e.preventDefault();e.stopPropagation();if(!isAdmin())return;try{const v=await window.mutationEconomy.changeWallet(field,1000);wallet[field]=v;refresh();toast(`+1000 ${field==="mutacoins"?"Mutacoins":"Motations"}`)}catch(err){console.warn(err);toast("Ajout refusé par Firebase")}};
   $b("adminAddMotations").onclick=e=>adminAdd("motations",e);$b("adminAddMutacoins").onclick=e=>adminAdd("mutacoins",e);
   const eco=window.mutationEconomy;
-  if(eco?.onAuthStateChanged)eco.onAuthStateChanged(eco.auth,()=>{bindFirebaseState();refresh()});
-  setInterval(()=>{if(!rolling&&!colorWheelRolling)refresh()},3000);bindFirebaseState();refresh();
+  if(eco?.onAuthStateChanged)eco.onAuthStateChanged(eco.auth,()=>{loadedUid="";loadFirebaseState(true)});
+  // Pas de listener temps réel ni de timer de refresh ici : ils provoquaient des cascades de rendu.
+  // Le portefeuille est chargé une fois à la connexion puis mis à jour après chaque transaction.
+  loadFirebaseState(true);refresh();
 })();
 </script>
 
