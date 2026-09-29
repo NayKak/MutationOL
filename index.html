@@ -3001,7 +3001,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const rarityOrder={"Commun":0,"Rare":1,"Épique":2,"Légendaire":3};
   let selectedInventoryItem=null;
   function renderColorInventory(){
-    const box=$b("betaColorInventory");if(box){const owned=getColors(),eq=cosmeticState.equippedColor||"";box.innerHTML=owned.length?owned.map(id=>{const x=colorById(id);if(!x)return"";return `<button class="betaColorItem ${eq===id?"equipped":""}" data-color-id="${id}" type="button"><span class="betaColorPreview">${styledNickHTML(betaNick(),x)}</span>${x.name}<small class="${rarityClass(x.rarity)}">${x.rarity}</small></button>`}).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=()=>equipInventoryColor(btn.dataset.colorId))}
+    const box=$b("betaColorInventory");if(box){const owned=getColors().map(id=>colorById(id)).filter(Boolean).sort((a,b)=>(rarityOrder[a.rarity]-rarityOrder[b.rarity])||a.name.localeCompare(b.name,"fr")),eq=cosmeticState.equippedColor||"";box.innerHTML=owned.length?owned.map(x=>{const id=x.id;return `<button class="betaColorItem ${eq===id?"equipped":""}" data-color-id="${id}" type="button"><span class="betaColorPreview">${styledNickHTML(betaNick(),x)}</span>${x.name}<small class="${rarityClass(x.rarity)}">${x.rarity}</small></button>`}).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=()=>equipInventoryColor(btn.dataset.colorId))}
     renderMainInventory();
   }
   async function equipInventoryColor(id){try{await window.mutationEconomy.equipColor(id);cosmeticState.equippedColor=id;const u=window.mutationEconomy?.auth?.currentUser?.uid;if(u){publicAppearanceCache.set(u,{...(publicAppearanceCache.get(u)||{}),equippedColor:id});publicAppearanceAt.set(u,Date.now())}renderColorInventory();applyEquippedColor();toast("Couleur équipée et enregistrée") }catch(e){console.warn(e);toast("Équipement refusé")}}
@@ -3029,7 +3029,13 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const busy=shopBusy();
     modal.classList.toggle("betaBusy",busy);
     modal.querySelectorAll("button").forEach(btn=>{
-      if(busy)btn.disabled=true;
+      if(busy){
+        if(!("busyPrevDisabled" in btn.dataset)) btn.dataset.busyPrevDisabled=btn.disabled?"1":"0";
+        btn.disabled=true;
+      }else if("busyPrevDisabled" in btn.dataset){
+        btn.disabled=btn.dataset.busyPrevDisabled==="1";
+        delete btn.dataset.busyPrevDisabled;
+      }
     });
   }
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
@@ -3276,6 +3282,37 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     sync();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+
+<!-- V102 — déblocage boutique + centrage réel dans le viewport visible mobile -->
+<style id="v102-confirm-visual-viewport">
+#resetSoloModal .modalCard,#deleteProfileModal .modalCard{
+  max-height:calc(100dvh - 24px)!important;
+}
+</style>
+<script id="v102-confirm-visual-viewport-script">
+(function(){
+  const ids=["resetSoloModal","deleteProfileModal"];
+  function centerConfirmModals(){
+    const vv=window.visualViewport;
+    const cx=vv ? vv.offsetLeft+vv.width/2 : window.innerWidth/2;
+    const cy=vv ? vv.offsetTop+vv.height/2 : window.innerHeight/2;
+    ids.forEach(id=>{
+      const modal=document.getElementById(id), card=modal?.querySelector(".modalCard");
+      if(!modal||!card||modal.classList.contains("hidden"))return;
+      card.style.setProperty("left",cx+"px","important");
+      card.style.setProperty("top",cy+"px","important");
+      card.style.setProperty("max-height",Math.max(180,(vv?vv.height:window.innerHeight)-24)+"px","important");
+    });
+  }
+  function init(){
+    ids.forEach(id=>{const m=document.getElementById(id);if(m)new MutationObserver(centerConfirmModals).observe(m,{attributes:true,attributeFilter:["class"]})});
+    window.addEventListener("resize",centerConfirmModals,{passive:true});
+    if(window.visualViewport){visualViewport.addEventListener("resize",centerConfirmModals,{passive:true});visualViewport.addEventListener("scroll",centerConfirmModals,{passive:true})}
+    document.addEventListener("click",e=>{if(e.target.closest("#resetSoloBest,#deleteProfileData"))requestAnimationFrame(centerConfirmModals)},true);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 </script>
 </body></html>
