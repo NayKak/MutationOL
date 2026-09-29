@@ -2867,7 +2867,13 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   $b("betaRollBtn").onclick=()=>{
     if(!active()||rolling||getN(K.words)<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";localStorage.setItem(K.words,String(getN(K.words)-WORD_COST));refresh();
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
-    const itemW=track.firstElementChild.getBoundingClientRect().width+8,target=28*itemW+(Math.random()*.45-.225)*itemW;track.style.transition="transform 4.6s cubic-bezier(.08,.72,.12,1)";track.style.transform=`translateX(-${target}px)`;
+    // Centre précisément la carte gagnante sous le repère blanc, quelle que soit la largeur réelle sur mobile.
+    const winnerBeforeRoll=track.children[28], rouletteWindow=track.parentElement;
+    const winnerCenter=winnerBeforeRoll.offsetLeft + winnerBeforeRoll.offsetWidth/2;
+    const windowCenter=rouletteWindow.clientWidth/2;
+    const target=Math.max(0,winnerCenter-windowCenter);
+    track.style.transition="transform 4.6s cubic-bezier(.08,.72,.12,1)";
+    track.style.transform=`translateX(-${target}px)`;
     setTimeout(()=>{const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));const winner=track.children[28];if(winner){winner.classList.add("betaWinner");track.parentElement.classList.add("betaHasWinner");winner.innerHTML=`<div>+${win.v} 🪙<span class="betaGain">GAGNÉ !</span></div>`;}rolling=false;refresh();},4700);
   };
   $b("betaBuyBox").onclick=()=>{if(!active())return;let c=getN(K.coins);if(c<BOX_COST)return;c-=BOX_COST;localStorage.setItem(K.coins,String(c));const item=cosmetics[Math.floor(Math.random()*cosmetics.length)],inv=getInv();inv.push(item);setInv(inv);toast(`📦 ${item}`);refresh()};
