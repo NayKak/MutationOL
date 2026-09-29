@@ -3115,52 +3115,68 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   };
   $b("betaWheelSpin").onclick=async()=>{if(!active()||shopBusy())return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}colorWheelRolling=true;syncShopBusy();try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST);refresh()}catch(e){colorWheelRolling=false;refresh();toast("Paiement refusé");return}$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const winOverlay=$b("betaWheelWinOverlay");if(winOverlay){winOverlay.innerHTML="";winOverlay.classList.add("hidden")}const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),matchingSectors=[rarityIndex,rarityIndex+4,rarityIndex+8],sectorIndex=matchingSectors[Math.floor(Math.random()*matchingSectors.length)],sectorCenter=sectorIndex*30,jitter=(Math.random()*20-10),land=sectorCenter+jitter,targetMod=(90-(land%360)+360)%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const before=colorCount(item.id),isNew=before===0;try{const qty=await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=qty}catch(e){console.warn("Gain cosmétique refusé",e)}if(winOverlay){const nameSizeClass=item.name.length>22?" very-long-name":item.name.length>15?" long-name":"";winOverlay.innerHTML=`<div class="betaWheelWinCard ${rarityClass(item.rarity)}${nameSizeClass}"><span>${item.rarity}</span><b>${item.name}</b></div>`;winOverlay.classList.remove("hidden")}$b("betaWheelResult").innerHTML="";colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=()=>openProfileType("color");$b("betaFrameEquipBtn").onclick=()=>openProfileType("frame");$b("betaBadgeEquipBtn").onclick=()=>openProfileType("badge");$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});$b("betaTypeClose").onclick=$b("betaTypeBack").onclick=()=>$b("betaTypeModal").classList.add("hidden");$b("betaTypeModal").addEventListener("click",e=>{if(e.target===$b("betaTypeModal"))$b("betaTypeModal").classList.add("hidden")});
-  $b("betaSellAllDuplicates").onclick=async()=>{
-    const duplicates=animalColors.map(item=>({item,qty:colorCount(item.id)})).filter(x=>x.qty>1);
-    if(!duplicates.length){toast("Aucun doublon à vendre");return}
-    const totalItems=duplicates.reduce((sum,x)=>sum+(x.qty-1),0);
-    const totalValue=duplicates.reduce((sum,x)=>sum+(x.qty-1)*(sellValues[x.item.rarity]||0),0);
-    const confirmModal=$b("betaSellAllConfirm"),confirmText=$b("betaSellAllConfirmText");
-    confirmText.innerHTML=`Vendre <strong>${totalItems} doublon${totalItems>1?"s":""}</strong> pour <strong>${totalValue} 🧬</strong> ?`;
-    confirmModal.classList.remove("hidden");
-    const confirmed=await new Promise(resolve=>{
-      const yes=$b("betaSellAllConfirmYes"),no=$b("betaSellAllConfirmNo");
-      let done=false;
-      const finish=value=>{
-        if(done)return;done=true;
-        confirmModal.classList.add("hidden");
-        yes.removeEventListener("click",onYes);
-        no.removeEventListener("click",onNo);
-        confirmModal.removeEventListener("click",onBackdrop);
-        resolve(value);
-      };
-      const onYes=e=>{e.preventDefault();e.stopPropagation();finish(true)};
-      const onNo=e=>{e.preventDefault();e.stopPropagation();finish(false)};
-      const onBackdrop=e=>{if(e.target===confirmModal){e.preventDefault();e.stopPropagation();finish(false)}};
-      yes.disabled=false;no.disabled=false;
-      yes.addEventListener("click",onYes,{once:true});
-      no.addEventListener("click",onNo,{once:true});
-      confirmModal.addEventListener("click",onBackdrop);
-    });
-    if(!confirmed)return;
-    const btn=$b("betaSellAllDuplicates");btn.disabled=true;const originalLabel=btn.textContent;
-    let sold=0,gained=0,failed=false;btn.textContent=`Vente en cours… 0/${totalItems}`;
+  let pendingSellAll=null;
+  async function executeSellAllDuplicates(duplicates,totalItems){
+    const btn=$b("betaSellAllDuplicates");
+    if(!btn||btn.disabled)return;
+    btn.disabled=true;
+    const originalLabel=btn.textContent;
+    let sold=0,gained=0,failed=false;
+    btn.textContent=`Vente en cours… 0/${totalItems}`;
     try{
       for(const {item,qty} of duplicates){
         const price=sellValues[item.rarity]||0;
         for(let i=1;i<qty;i++){
           try{
             const out=await window.mutationEconomy.sellColor(item.id,price);
-            wallet.motations=out.motations;cosmeticState.colors[item.id]=out.qty;sold++;gained+=price;btn.textContent=`Vente en cours… ${sold}/${totalItems}`;
-          }catch(e){console.warn("Vente doublon refusée",item.id,e);failed=true;break}
+            wallet.motations=out.motations;
+            cosmeticState.colors[item.id]=out.qty;
+            sold++;gained+=price;
+            btn.textContent=`Vente en cours… ${sold}/${totalItems}`;
+          }catch(e){
+            console.warn("Vente doublon refusée",item.id,e);
+            failed=true;break;
+          }
         }
       }
       refresh();
       if(sold)toast(`Vendu${sold>1?"s":""} ${sold} doublon${sold>1?"s":""} · +${gained} 🧬`);
       else toast("Aucun doublon vendu");
       if(failed)console.warn("Certaines ventes de doublons ont été refusées par Firebase.");
-    }finally{btn.disabled=false;btn.textContent=originalLabel}
+    }finally{
+      btn.disabled=false;
+      btn.textContent=originalLabel;
+    }
+  }
+  $b("betaSellAllDuplicates").onclick=()=>{
+    const duplicates=animalColors.map(item=>({item,qty:colorCount(item.id)})).filter(x=>x.qty>1);
+    if(!duplicates.length){toast("Aucun doublon à vendre");return}
+    const totalItems=duplicates.reduce((sum,x)=>sum+(x.qty-1),0);
+    const totalValue=duplicates.reduce((sum,x)=>sum+(x.qty-1)*(sellValues[x.item.rarity]||0),0);
+    pendingSellAll={duplicates,totalItems,totalValue};
+    $b("betaSellAllConfirmText").innerHTML=`Vendre <strong>${totalItems} doublon${totalItems>1?"s":""}</strong> pour <strong>${totalValue} 🧬</strong> ?`;
+    $b("betaSellAllConfirm").classList.remove("hidden");
   };
+  $b("betaSellAllConfirmNo").onclick=e=>{
+    e.preventDefault();e.stopPropagation();
+    pendingSellAll=null;
+    $b("betaSellAllConfirm").classList.add("hidden");
+  };
+  $b("betaSellAllConfirmYes").onclick=async e=>{
+    e.preventDefault();e.stopPropagation();
+    const job=pendingSellAll;
+    if(!job)return;
+    pendingSellAll=null;
+    $b("betaSellAllConfirm").classList.add("hidden");
+    await executeSellAllDuplicates(job.duplicates,job.totalItems);
+  };
+  $b("betaSellAllConfirm").addEventListener("click",e=>{
+    if(e.target===$b("betaSellAllConfirm")){
+      e.preventDefault();e.stopPropagation();
+      pendingSellAll=null;
+      $b("betaSellAllConfirm").classList.add("hidden");
+    }
+  });
   $b("betaActionCancel").onclick=closeInventoryAction;$b("betaInventoryAction").addEventListener("click",e=>{if(e.target===$b("betaInventoryAction"))closeInventoryAction()});$b("betaActionEquip").onclick=async()=>{if(!selectedInventoryItem)return;await equipInventoryColor(selectedInventoryItem.id);closeInventoryAction()};$b("betaActionSell").onclick=async()=>{const x=selectedInventoryItem?.item;if(!x)return;const price=sellValues[x.rarity]||0;try{const out=await window.mutationEconomy.sellColor(x.id,price);wallet.motations=out.motations;cosmeticState.colors[x.id]=out.qty;closeInventoryAction();refresh();toast(`Vendu +${price} 🧬`)}catch(e){console.warn(e);if(Number.isFinite(e?.actualQty)){cosmeticState.colors[x.id]=e.actualQty;refresh();toast(e.actualQty>1?"Vente refusée":"Aucun doublon à vendre")}else toast("Vente refusée")}};
   let loadedUid="",loadingState=false;
   async function loadFirebaseState(force=false){
