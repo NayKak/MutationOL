@@ -3324,9 +3324,12 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       sync();
       if(!activeModal)return;
       if(activeModal.contains(e.target))return;
-      /* Le panneau d'action d'inventaire appartient à la modale Boutique et reste autorisé. */
+      /* Les sous-modales de la Boutique sont des soeurs DOM de betaShopModal :
+         elles doivent rester cliquables même quand la Boutique est la modale active. */
       const action=byId('betaInventoryAction');
       if(action&&action.contains(e.target))return;
+      const sellConfirm=byId('betaSellAllConfirm');
+      if(sellConfirm&&isOpen(sellConfirm)&&sellConfirm.contains(e.target))return;
       e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
     },true);
     sync();
