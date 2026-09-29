@@ -2772,4 +2772,64 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   else portalConfirmModals();
 })();
 </script>
+
+
+<!-- V105 — centrage des confirmations sur le viewport réellement visible (mobile Chrome inclus) -->
+<style id="visual-viewport-confirm-centering">
+#resetSoloModal,#deleteProfileModal{
+  position:fixed!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  z-index:1000000!important;
+}
+#resetSoloModal:not(.hidden),#deleteProfileModal:not(.hidden){display:block!important}
+#resetSoloModal.hidden,#deleteProfileModal.hidden{display:none!important}
+#resetSoloModal::before,#deleteProfileModal::before{
+  content:"";position:fixed;inset:0;background:#000a;pointer-events:auto;
+}
+#resetSoloModal .modalCard,#deleteProfileModal .modalCard{
+  position:fixed!important;
+  left:var(--vv-center-x,50vw)!important;
+  top:var(--vv-center-y,50dvh)!important;
+  right:auto!important;bottom:auto!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+  width:min(390px,calc(var(--vv-width,100vw) - 24px))!important;
+  max-width:390px!important;
+  max-height:calc(var(--vv-height,100dvh) - 24px)!important;
+  overflow:auto!important;
+  box-sizing:border-box!important;
+  z-index:1!important;
+}
+</style>
+<script id="visual-viewport-confirm-centering-script">
+(function(){
+  function syncVisibleViewport(){
+    var vv=window.visualViewport;
+    var left=vv?vv.offsetLeft:0, top=vv?vv.offsetTop:0;
+    var w=vv?vv.width:window.innerWidth, h=vv?vv.height:window.innerHeight;
+    var root=document.documentElement;
+    root.style.setProperty('--vv-width',w+'px');
+    root.style.setProperty('--vv-height',h+'px');
+    root.style.setProperty('--vv-center-x',(left+w/2)+'px');
+    root.style.setProperty('--vv-center-y',(top+h/2)+'px');
+  }
+  syncVisibleViewport();
+  window.addEventListener('resize',syncVisibleViewport,{passive:true});
+  window.addEventListener('orientationchange',syncVisibleViewport,{passive:true});
+  if(window.visualViewport){
+    visualViewport.addEventListener('resize',syncVisibleViewport,{passive:true});
+    visualViewport.addEventListener('scroll',syncVisibleViewport,{passive:true});
+  }
+  ['resetSoloBest','deleteProfileData'].forEach(function(id){
+    document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#'+id)) requestAnimationFrame(syncVisibleViewport);},true);
+  });
+})();
+</script>
+
 </body></html>
