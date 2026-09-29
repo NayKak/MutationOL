@@ -1930,6 +1930,7 @@ function privateSetupTabs(on){
   $("tabPlay").classList.toggle("hidden",on);
   $("tabRank").classList.toggle("hidden",on);
   $("rulesBtn").classList.remove("hidden");
+  document.getElementById("betaCurrencyBar")?.classList.toggle("hidden",on);
 }
 function showPlayMenu(){privateSetupTabs(false);$("tabPlay").disabled=false;closeProfile();$("playMenu").classList.remove("hidden");$("createBox").classList.add("hidden");$("joinBox").classList.add("hidden");document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));$("tabPlay").classList.add("active")}
 function closeProfile(){
@@ -2817,15 +2818,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     <div class="betaCurrencySummary"><div id="betaShopBalance" class="betaShopBalance">🪙 0 Mutacoins</div><div id="betaWordBalance" class="betaWordBalance">🧬 0 Motations</div></div>
     <div class="betaTabs"><button id="betaCoinsTab" class="active" type="button">Tirage</button><button id="betaStoreTab" type="button">Cosmétiques</button></div>
     <div id="betaCoinsPanel" class="betaPanel">
-      <div class="betaBox"><h3>Tirage Mutacoins</h3><p>Gagne des 🧬 en jouant.<br>Échange tes 🧬 contre des 🪙 afin de débloquer des objets uniques.</p>
+      <div class="betaBox"><p>Gagne des 🧬 en jouant.<br>Échange tes 🧬 contre des 🪙 afin de débloquer des objets uniques.</p>
         <div class="betaRouletteWindow"><div id="betaRouletteTrack" class="betaRouletteTrack"></div></div>
         <button id="betaRollBtn" type="button">Lancer — 50 🧬</button><div id="betaRollResult" class="betaResult"></div>
       </div>
     </div>
     <div id="betaStorePanel" class="betaPanel hidden">
-      <div class="betaBox betaDirectWheelBox"><h3>Roue des couleurs</h3><p>Tourne la roue et gagne une couleur animale.</p>
+      <div class="betaBox betaDirectWheelBox"><p>Remporte des cadeaux en tournant la roue.</p>
         <div class="betaWheelWrap"><div class="betaWheelPointer"></div><div id="betaRarityWheel" class="betaRarityWheel"><span class="betaWheelGift g0">🎁</span><span class="betaWheelGift g1">🎁</span><span class="betaWheelGift g2">🎁</span><span class="betaWheelGift g3">🎁</span><div class="betaWheelHub"></div></div></div>
-        <div class="betaWheelLegend"><div class="rar-common">Commun · 70%</div><div class="rar-rare">Rare · 25%</div><div class="rar-epic">Épique · 4%</div><div class="rar-legendary">Légendaire · 1%</div></div>
+        <div class="betaWheelLegend"><div class="rar-common">Commun</div><div class="rar-rare">Rare</div><div class="rar-epic">Épique</div><div class="rar-legendary">Légendaire</div></div>
         <div id="betaWheelResult" class="betaWheelResult"></div><button id="betaWheelSpin" type="button">Tourner — 100 🪙</button>
       </div>
       <h3 style="margin-top:18px">Inventaire</h3><div id="betaInventory" class="betaInventory"></div>
@@ -2882,15 +2883,20 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   function drawRarity(){let n=Math.random()*100;return rarityOdds.find(x=>n<x.end)||rarityOdds[0]}
   function drawAnimalColor(rarity){const pool=animalColors.filter(x=>x.rarity===rarity);return pool[Math.floor(Math.random()*pool.length)]}
 
-  const betaNick=()=>String((typeof profile!=="undefined"&&profile?.nick)||$b("profileName")?.textContent||"").trim();
+  const betaNick=()=>{
+    // Le profil principal vit dans un script module : on lit donc l’identité directement dans le DOM.
+    // menuNick est l’identité fiable hors de la fenêtre Profil ; nick/profileName servent de secours.
+    const candidates=[$b("menuNick")?.textContent,$b("nick")?.value,$b("profileName")?.textContent];
+    return String(candidates.find(v=>BETA_NICKS.has(String(v||"").trim().toLowerCase()))||candidates.find(v=>String(v||"").trim())||"").trim();
+  };
   const active=()=>BETA_NICKS.has(betaNick().toLowerCase());
   let rolling=false,colorWheelRolling=false,wheelRotation=0;
-  function startKey(){return "mutation_beta_50000_both_granted_v5_"+betaNick().toLowerCase()}
+  function startKey(){return "mutation_beta_50000_both_granted_v7_"+betaNick().toLowerCase()}
   function ensureBetaStart(){
     if(!active())return;
     const k=startKey();
     if(localStorage.getItem(k)!=="1"){
-      // Migration v5 : attribution fiable via le pseudo du profil (et non seulement le texte affiché).
+      // Migration v7 : attribution via menuNick / champ pseudo / titre profil pour éviter les faux négatifs.
       // Laping et Lionus reçoivent 50 000 de chaque monnaie une seule fois sur cette version.
       localStorage.setItem(K.coins,"50000");
       localStorage.setItem(K.words,"50000");
@@ -2909,7 +2915,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   }
   function refresh(){
     ensureBetaStart();
-    const on=active(),cur=ensureCurrencyBar();if(cur.bar)cur.bar.classList.toggle("hidden",!on);if($b("betaColorEquipBtn"))$b("betaColorEquipBtn").classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");$b("betaColorModal")?.classList.add("hidden");return}applyEquippedColor()
+    const on=active(),cur=ensureCurrencyBar(),mainMenuVisible=!!$b("playMenu")&&!$b("playMenu").classList.contains("hidden");if(cur.bar)cur.bar.classList.toggle("hidden",!on||!mainMenuVisible);if($b("betaColorEquipBtn"))$b("betaColorEquipBtn").classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");$b("betaColorModal")?.classList.add("hidden");return}applyEquippedColor()
     const c=getN(K.coins),w=getN(K.words),inv=getInv();if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
     $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`🧬 ${w} Motation${w>1?"s":""}`;
     $b("betaRollBtn").disabled=rolling||w<WORD_COST;if($b("betaWheelSpin"))$b("betaWheelSpin").disabled=colorWheelRolling||c<BOX_COST;
@@ -2964,7 +2970,9 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   };
   $b("betaWheelSpin").onclick=()=>{if(!active()||colorWheelRolling)return;let c=getN(K.coins);if(c<BOX_COST){toast("Pas assez de Mutacoins");return}c-=BOX_COST;localStorage.setItem(K.coins,String(c));refresh();colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),sectorCenter=45+rarityIndex*90,jitter=(Math.random()*44-22),land=sectorCenter+jitter,targetMod=(360-(land%360))%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(()=>{const owned=getColors();if(!owned.includes(item.id)){owned.push(item.id);setColors(owned)}$b("betaWheelResult").innerHTML=`<span class="${rarityClass(item.rarity)}">${item.rarity}</span> — ${item.name}<small>${owned.filter(x=>x===item.id).length?"Ajouté à ton inventaire de couleurs.":"Couleur obtenue."}</small>`;colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=openColorInventory;$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});
-  const n=$b("profileName");if(n)new MutationObserver(refresh).observe(n,{childList:true,subtree:true,characterData:true});setInterval(refresh,1500);refresh();
+  const identityObserver=new MutationObserver(refresh);
+  for(const id of ["profileName","menuNick"]){const n=$b(id);if(n)identityObserver.observe(n,{childList:true,subtree:true,characterData:true})}
+  setInterval(()=>{if(!rolling&&!colorWheelRolling)refresh()},1500);refresh();
 })();
 </script>
 
