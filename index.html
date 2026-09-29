@@ -1776,7 +1776,12 @@ const SESSION_KEY="mutation_active_room",NICK_KEY="mutation_nick";
 async function saveSession(c){if(!uid)return;try{await set(ref(db,`userSessions/${uid}/currentRoom`),c||null)}catch(e){console.warn("Session Firebase :",e)}}
 async function clearSession(){if(!uid)return;try{await remove(ref(db,`userSessions/${uid}/currentRoom`))}catch(e){console.warn("Session Firebase :",e)}}
 async function restoreSession(){if(!uid)return;try{const cs=await get(ref(db,`userSessions/${uid}/currentRoom`)),c=cs.val();if(!c)return;let s=await get(ref(db,"rooms/"+c));if(!s.exists()){await clearSession();return}let d=s.val();if(d.lastActivity&&now()-d.lastActivity>=INACTIVE){try{await remove(ref(db,"rooms/"+c))}catch{}await clearSession();return}let me=d.players?.p1?.uid===uid?"p1":d.players?.p2?.uid===uid?"p2":null;if(!me){await clearSession();return}room=d;roomCode=c;await update(ref(db,`rooms/${c}/players/${me}`),{online:true,lastSeen:now()});subscribe(c)}catch(e){console.warn("Restauration session Firebase :",e)}}
-function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}function screen(id){["home","lobby","game","solo","rankingPanel"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+function msg(id,t,c=""){$(id).textContent=t;$(id).className="msg "+c}
+const NAV_STATE_KEY="mutation_ui_location_v1";
+function saveUiLocation(patch={}){
+  try{const prev=JSON.parse(localStorage.getItem(NAV_STATE_KEY)||"{}");localStorage.setItem(NAV_STATE_KEY,JSON.stringify({...prev,...patch}))}catch{}
+}
+function screen(id){["home","lobby","game","solo","rankingPanel"].forEach(x=>$(x).classList.toggle("hidden",x!==id));if(id==="home"||id==="rankingPanel")saveUiLocation({screen:id})}
 function slot(d=room){return d?.players?.p1?.uid===uid?"p1":d?.players?.p2?.uid===uid?"p2":null}
 function code(){let a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";return Array.from({length:5},()=>a[Math.random()*a.length|0]).join("")}
 function starts(){if(SHORT.length<3)return [];let a=[...SHORT],o=[];while(o.length<3){let i=Math.random()*a.length|0;o.push(a.splice(i,1)[0])}return o}
@@ -1977,6 +1982,7 @@ function setNickEditMode(editing=false){
   }
 }
 function openProfile(){
+  saveUiLocation({screen:"home",homeView:"profile"});
   refreshProfileRanks();
   selectedAvatar=profile?.avatarId||"avatar01";
   $("nick").value=profile?.nick||"";
@@ -1998,7 +2004,7 @@ function privateSetupTabs(on){
   $("rulesBtn").classList.remove("hidden");
   document.getElementById("betaCurrencyBar")?.classList.toggle("hidden",on);
 }
-function showPlayMenu(){privateSetupTabs(false);$("tabPlay").disabled=false;closeProfile();$("playMenu").classList.remove("hidden");$("createBox").classList.add("hidden");$("joinBox").classList.add("hidden");document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));$("tabPlay").classList.add("active")}
+function showPlayMenu(){saveUiLocation({screen:"home",homeView:"play"});privateSetupTabs(false);$("tabPlay").disabled=false;closeProfile();$("playMenu").classList.remove("hidden");$("createBox").classList.add("hidden");$("joinBox").classList.add("hidden");document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));$("tabPlay").classList.add("active")}
 function closeProfile(){
   if(!profile)return;
   $("profileBox").classList.add("hidden");
@@ -2173,7 +2179,18 @@ $("confirmLogout").onclick=async()=>{$("logoutModal").classList.add("hidden");
   msg("homeMsg","");
 };
 dictionary();
-onAuthStateChanged(auth,async u=>{if(u){await loadProfile(u);await cleanup();if(profile)await restoreSession()}else{uid=null;profile=null;$("authBox").classList.remove("hidden");$("profileBox").classList.add("hidden");$("playActions").classList.add("hidden");}});
+function restoreUiLocation(){
+  if(roomCode||!profile)return;
+  let st={};try{st=JSON.parse(localStorage.getItem(NAV_STATE_KEY)||"{}")}catch{}
+  if(st.screen==="rankingPanel"){
+    screen("rankingPanel");showRankingMode(st.rankingMode==="multi"?"multi":"solo");
+  }else{
+    screen("home");
+    if(st.homeView==="profile"&&!auth.currentUser?.isAnonymous)openProfile();else showPlayMenu();
+  }
+  if(st.shopOpen&&typeof window.mutationOpenEconomy==="function")setTimeout(()=>window.mutationOpenEconomy(st.shopTab||"coins"),0);
+}
+onAuthStateChanged(auth,async u=>{if(u){await loadProfile(u);await cleanup();if(profile){await restoreSession();if(!roomCode)restoreUiLocation()}}else{uid=null;profile=null;$("authBox").classList.remove("hidden");$("profileBox").classList.add("hidden");$("playActions").classList.add("hidden");}});
 
 onValue(ref(db,".info/connected"),s=>{let ok=s.val()===true;$("netBanner").classList.toggle("hidden",ok);if(ok&&roomCode&&!leaving)presence()});
 
@@ -2262,6 +2279,7 @@ function antiInvalid(reason){
 let rankingMode="solo";
 function registeredProfile(){return !!(auth.currentUser&&!auth.currentUser.isAnonymous&&!profile?.anonymousRanking)}
 function showRankingMode(mode){
+  saveUiLocation({screen:"rankingPanel",rankingMode:mode});
   rankingMode=mode;
   $("rankingMultiTab").classList.toggle("active",mode==="multi");
   $("rankingSoloTab").classList.toggle("active",mode==="solo");
@@ -3081,11 +3099,11 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     renderMainInventory();
     for(const id of ["adminAddMotations","adminAddMutacoins"]){const e=$b(id);if(e)e.classList.toggle("hidden",!isAdmin())}
   }
-  function showTab(which){const coins=which==="coins",store=which==="store",inv=which==="inventory";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",!store);$b("betaInventoryPanel").classList.toggle("hidden",!inv);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",store);$b("betaInventoryTab").classList.toggle("active",inv);if(inv)renderMainInventory()}
-  function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab(tab);refresh()}
+  function showTab(which){saveUiLocation({shopOpen:true,shopTab:tab});const coins=which==="coins",store=which==="store",inv=which==="inventory";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",!store);$b("betaInventoryPanel").classList.toggle("hidden",!inv);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",store);$b("betaInventoryTab").classList.toggle("active",inv);if(inv)renderMainInventory()}
+  function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");saveUiLocation({shopOpen:true,shopTab:tab});showTab(tab);refresh()}window.mutationOpenEconomy=openModal;try{const _st=JSON.parse(localStorage.getItem(NAV_STATE_KEY)||"{}");if(_st.shopOpen&&auth.currentUser&&!roomCode)setTimeout(()=>openModal(_st.shopTab||"coins"),0)}catch{}
   window.betaMutationWordEarned=async function(source){if(!active())return;try{wallet.motations=await window.mutationEconomy.changeWallet("motations",1);refresh()}catch(e){console.warn("Gain Motation refusé",e)}};
-  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaInventoryTab").onclick=()=>showTab("inventory");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden")};$b("betaShopClose").onclick=()=>{if(!shopBusy())closeShop()};$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();if(!shopBusy())closeShop()};
-  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!shopBusy())$b("betaShopModal").classList.add("hidden")});
+  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaInventoryTab").onclick=()=>showTab("inventory");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden");saveUiLocation({shopOpen:false})};$b("betaShopClose").onclick=()=>{if(!shopBusy())closeShop()};$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();if(!shopBusy())closeShop()};
+  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!shopBusy()){ $b("betaShopModal").classList.add("hidden");saveUiLocation({shopOpen:false}) }});
   $b("betaRollBtn").onclick=async()=>{
     if(!active()||shopBusy()||wallet.motations<WORD_COST)return;rolling=true;syncShopBusy();$b("betaRollResult").textContent="";try{wallet.motations=await window.mutationEconomy.changeWallet("motations",-WORD_COST);refresh()}catch(e){rolling=false;refresh();toast("Paiement refusé");return}
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
