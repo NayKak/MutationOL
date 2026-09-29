@@ -3471,6 +3471,25 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 <style id="betaInventoryCategoryTabsPatch">
 .betaInventoryTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0 8px}.betaInventoryTabs button{min-width:0;margin:0!important;padding:10px 5px!important;border-radius:11px!important;background:#0b303a!important;color:#b9dce4!important;border:1px solid #285a67!important;font-size:13px!important}.betaInventoryTabs button.active{background:#20d9f4!important;color:#04121b!important;border-color:#6eeeff!important;box-shadow:0 0 0 1px #20d9f455!important}.betaSellAllDuplicates{width:auto!important;min-width:0!important;margin:9px auto 13px!important;padding:10px 15px!important;border:1px solid #3e7d75!important;background:linear-gradient(145deg,#123c3a,#0b2c31)!important;color:#dffff2!important;border-radius:12px!important;font-size:13px!important;box-shadow:inset 0 1px 0 #ffffff12,0 5px 14px #0003!important}.betaSellAllDuplicates:hover,.betaSellAllDuplicates:focus{border-color:#63efaa!important;filter:brightness(1.08)}.betaInvTypeSingle{padding-top:9px!important}.betaInvTypeSingle>h3{display:none!important}@media(max-width:420px){.betaInventoryTabs{gap:4px}.betaInventoryTabs button{padding:9px 3px!important;font-size:11.5px!important}.betaSellAllDuplicates{font-size:12px!important;padding:9px 12px!important}}
 </style>
+
+<!-- V — modale action inventaire centrée dans le viewport mobile -->
+<style id="inventory-action-centered-v1">
+#betaInventoryAction{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  margin:0!important;padding:16px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  overflow:auto!important;z-index:100050!important;box-sizing:border-box!important;
+}
+#betaInventoryAction.hidden{display:none!important}
+#betaInventoryAction .betaActionCard{
+  position:relative!important;inset:auto!important;transform:none!important;
+  width:min(390px,calc(100vw - 32px))!important;max-width:390px!important;
+  max-height:calc(100dvh - 32px)!important;margin:auto!important;overflow:auto!important;box-sizing:border-box!important;
+}
+@media(max-width:480px){
+  #betaInventoryAction{padding:12px!important}
+  #betaInventoryAction .betaActionCard{width:calc(100vw - 24px)!important;max-width:370px!important;max-height:calc(100dvh - 24px)!important}
+}
+</style>
 </body></html>
 <style id="betaInventoryThreeColumnsPatch">
 /* Inventaire compact : 3 cases par ligne sur mobile */
@@ -3489,4 +3508,29 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   .betaInvNick{font-size:10px!important}
   .betaInvLabel{font-size:8px!important}
 }
+
+/* Inventaire/Boutique — croix de fermeture plus visible et mieux placée */
+#betaShopClose{
+  position:sticky!important;
+  top:0!important;
+  float:right!important;
+  z-index:30!important;
+  width:44px!important;
+  height:44px!important;
+  min-width:44px!important;
+  margin:-6px -6px 4px 10px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:50%!important;
+  border:2px solid #ff5b72!important;
+  background:#451722!important;
+  color:#ff7189!important;
+  font-size:31px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  box-shadow:0 4px 16px #0008,0 0 0 3px #ff718920!important;
+}
+#betaShopClose:hover,#betaShopClose:focus{background:#682033!important;color:#fff!important;border-color:#ff8ca0!important}
+@media(max-width:480px){#betaShopClose{width:42px!important;height:42px!important;min-width:42px!important;font-size:30px!important;margin:-4px -4px 4px 8px!important}}
 </style>
