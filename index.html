@@ -2867,14 +2867,33 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   $b("betaRollBtn").onclick=()=>{
     if(!active()||rolling||getN(K.words)<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";localStorage.setItem(K.words,String(getN(K.words)-WORD_COST));refresh();
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
-    // Centre précisément la carte gagnante sous le repère blanc, quelle que soit la largeur réelle sur mobile.
+    // Le repère blanc peut s'arrêter n'importe où sur la carte gagnante, y compris près de ses bords.
+    // Une fois la roulette arrêtée, la carte glisse ensuite jusqu'au centre avant d'afficher le gain.
     const winnerBeforeRoll=track.children[28], rouletteWindow=track.parentElement;
     const winnerCenter=winnerBeforeRoll.offsetLeft + winnerBeforeRoll.offsetWidth/2;
     const windowCenter=rouletteWindow.clientWidth/2;
-    const target=Math.max(0,winnerCenter-windowCenter);
+    const half=winnerBeforeRoll.offsetWidth/2;
+    const edgeMargin=Math.max(4,winnerBeforeRoll.offsetWidth*.06);
+    const landingOffset=(Math.random()*2-1)*Math.max(0,half-edgeMargin);
+    const stopTarget=Math.max(0,winnerCenter+landingOffset-windowCenter);
+    const centeredTarget=Math.max(0,winnerCenter-windowCenter);
     track.style.transition="transform 4.6s cubic-bezier(.08,.72,.12,1)";
-    track.style.transform=`translateX(-${target}px)`;
-    setTimeout(()=>{const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));const winner=track.children[28];if(winner){winner.classList.add("betaWinner");track.parentElement.classList.add("betaHasWinner");winner.innerHTML=`<div>+${win.v} 🪙<span class="betaGain">GAGNÉ !</span></div>`;}rolling=false;refresh();},4700);
+    track.style.transform=`translateX(-${stopTarget}px)`;
+    setTimeout(()=>{
+      // Petit temps d'arrêt : on voit clairement où la barre blanche est tombée.
+      track.style.transition="transform .48s cubic-bezier(.22,.78,.2,1)";
+      track.style.transform=`translateX(-${centeredTarget}px)`;
+      setTimeout(()=>{
+        const c=getN(K.coins)+win.v;localStorage.setItem(K.coins,String(c));
+        const winner=track.children[28];
+        if(winner){
+          winner.classList.add("betaWinner");
+          track.parentElement.classList.add("betaHasWinner");
+          winner.innerHTML=`<div>+${win.v} 🪙<span class="betaGain">GAGNÉ !</span></div>`;
+        }
+        rolling=false;refresh();
+      },520);
+    },4750);
   };
   $b("betaBuyBox").onclick=()=>{if(!active())return;let c=getN(K.coins);if(c<BOX_COST)return;c-=BOX_COST;localStorage.setItem(K.coins,String(c));const item=cosmetics[Math.floor(Math.random()*cosmetics.length)],inv=getInv();inv.push(item);setInv(inv);toast(`📦 ${item}`);refresh()};
   const n=$b("profileName");if(n)new MutationObserver(refresh).observe(n,{childList:true,subtree:true,characterData:true});setInterval(refresh,1500);refresh();
