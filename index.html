@@ -1504,6 +1504,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <button id="tabPlay" type="button" class="tabBtn active">Jouer</button>
   <button id="tabRank" type="button" class="tabBtn">Classement</button>
   <button id="rulesBtn" type="button" class="tabBtn">Règles</button>
+  <button id="menuCoinStock" type="button" class="tabBtn hidden" title="Ouvrir les Mutacoins et la boutique">🪙 0</button>
 </nav>
 <div id="playMenu">
   <div class="modeDivider"><span>Partie classée</span></div>
@@ -2775,17 +2776,20 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 </script>
 
 <style id="beta-mutacoins-boxes">
-#menuCoinStock{display:inline-flex;align-items:center;gap:4px;margin-left:7px;padding:3px 7px;border:1px solid #806d2a;border-radius:999px;background:#2b2715;color:#ffe58a;font-size:11px;font-weight:900;vertical-align:middle;cursor:pointer;box-shadow:inset 0 1px 0 #fff1}
-#menuCoinStock:hover{background:#3a3418;border-color:#b89b32}
-#betaShopModal{z-index:100000!important}.betaShopCard{max-width:500px!important}
+#menuCoinStock{margin-left:auto!important;display:inline-flex;align-items:center;justify-content:center;gap:4px;color:#ffe58a!important;font-weight:900!important;white-space:nowrap}
+#menuCoinStock.hidden{display:none!important}
+#menuCoinStock:hover{color:#fff0a8!important}
+#betaShopModal{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;margin:0!important;padding:14px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;z-index:100000!important}
+#betaShopModal.hidden{display:none!important}
+.betaShopCard{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:min(500px,calc(100vw - 28px))!important;max-width:500px!important;max-height:calc(100dvh - 28px)!important;margin:auto!important;overflow:auto!important;box-sizing:border-box!important}
 .betaShopBalance{text-align:center;font-weight:900;color:#ffe58a;margin:6px 0 6px}.betaWordBalance{text-align:center;color:#a9cad3;font-size:13px;margin-bottom:14px}
 .betaTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 14px}.betaTabs button{margin:0!important;padding:10px!important;background:#0b303a!important;color:#dffaff!important;border:1px solid #2a6878!important}.betaTabs button.active{background:#20d9f4!important;color:#04121b!important}
 .betaPanel.hidden{display:none!important}.betaBox{padding:14px;border:1px solid #2a6878;border-radius:15px;background:#0b2632;margin:10px 0}.betaBox h3{margin:0 0 5px}.betaBox p{margin:0;color:#a9cad3;font-size:13px;line-height:1.4}
 .betaOdds{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:12px 0}.betaOdd{padding:8px 3px;border-radius:9px;text-align:center;font-size:11px;font-weight:850;border:1px solid #ffffff1a}.betaOdd b{display:block;font-size:13px;margin-bottom:2px}
 .r-common{background:#353b42!important;border-color:#69717a!important;color:#e3e7eb!important}.r-rare{background:#173c25!important;border-color:#43a85d!important;color:#83ee9c!important}.r-epic{background:#183455!important;border-color:#397ed0!important;color:#83bfff!important}.r-mythic{background:#4a2b12!important;border-color:#d3832f!important;color:#ffc46f!important}.r-legendary{background:#4b151b!important;border-color:#d9414f!important;color:#ff8792!important}
 .betaRouletteWindow{position:relative;overflow:hidden;height:86px;border:1px solid #2a6878;border-radius:13px;background:#061a22;margin:12px 0;box-shadow:inset 0 0 24px #0009}.betaRouletteWindow:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;transform:translateX(-50%);background:#fff;box-shadow:0 0 12px #fff;z-index:3}.betaRouletteTrack{height:100%;display:flex;align-items:center;gap:8px;padding-left:calc(50% - 47px);transform:translateX(0);will-change:transform}.betaLoot{flex:0 0 94px;height:66px;border-radius:10px;display:grid;place-items:center;text-align:center;font-weight:950;font-size:14px;border:2px solid}.betaLoot small{display:block;font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.05em}
-#betaRollBtn{margin-top:8px!important}.betaResult{text-align:center;min-height:25px;margin-top:10px;font-weight:950}.betaInventory{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.betaItem{padding:6px 8px;border-radius:9px;background:#143f49;font-size:12px}.betaToast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:100001;background:#092a32;border:1px solid #63ef55;color:#fff;padding:13px 18px;border-radius:14px;box-shadow:0 14px 40px #0009;font-weight:850;text-align:center;max-width:calc(100vw - 30px)}
-@media(max-width:480px){.betaShopCard{padding:16px!important}.betaOdds{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.betaOdd{font-size:9px;padding:6px 1px}.betaOdd b{font-size:11px}.betaLoot{flex-basis:82px}.betaRouletteTrack{padding-left:calc(50% - 41px)}}
+#betaRollBtn{margin-top:8px!important}.betaResult{text-align:center;min-height:25px;margin-top:10px;font-weight:950}.betaInventory{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.betaItem{padding:6px 8px;border-radius:9px;background:#143f49;font-size:12px}.betaShopBack{width:100%;margin-top:14px!important;background:#0b303a!important;color:#dffaff!important;border:1px solid #2a6878!important}.betaToast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:100001;background:#092a32;border:1px solid #63ef55;color:#fff;padding:13px 18px;border-radius:14px;box-shadow:0 14px 40px #0009;font-weight:850;text-align:center;max-width:calc(100vw - 30px)}
+@media(max-width:480px){#betaShopModal{padding:10px!important}.betaShopCard{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important;padding:16px!important}.betaOdds{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.betaOdd{font-size:9px;padding:6px 1px}.betaOdd b{font-size:11px}.betaLoot{flex-basis:82px}.betaRouletteTrack{padding-left:calc(50% - 41px)}}
 </style>
 <div id="betaShopModal" class="modal hidden">
   <div class="modalCard betaShopCard">
@@ -2807,6 +2811,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       <div class="betaBox"><h3>Mutation Box</h3><p>Contient 1 cosmétique aléatoire. Prototype privé.</p><button id="betaBuyBox" type="button">Ouvrir — 100 🪙</button></div>
       <h3 style="margin-top:18px">Inventaire</h3><div id="betaInventory" class="betaInventory"></div>
     </div>
+    <button id="betaShopBack" class="betaShopBack secondary" type="button">← Retour au jeu</button>
   </div>
 </div>
 <script id="beta-mutacoins-boxes-script">
@@ -2819,12 +2824,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const getInv=()=>{try{return JSON.parse(localStorage.getItem(K.inv)||"[]")}catch{return []}},setInv=a=>localStorage.setItem(K.inv,JSON.stringify(a));
   const active=()=>($b("profileName")?.textContent||"").trim()===BETA_NICK;
   let rolling=false;
+  const START_KEY="mutation_beta_laping_15000_granted";
+  function ensureLapingStart(){if(!active())return;if(localStorage.getItem(START_KEY)!=="1"){localStorage.setItem(K.coins,"15000");localStorage.setItem(START_KEY,"1")}}
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
   function pickVisual(){return reward()}
   function lootHTML(x){return `<div class="betaLoot ${x.cls}"><div>${x.v} 🪙<small>${x.rarity}</small></div></div>`}
   function toast(t){let e=document.createElement("div");e.className="betaToast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
-  function ensureCoinBadge(){let nick=$b("menuNick");if(!nick)return null;let e=$b("menuCoinStock");if(!e){e=document.createElement("span");e.id="menuCoinStock";e.title="Ouvrir les Mutacoins et la boutique";e.onclick=openModal;nick.insertAdjacentElement("afterend",e)}return e}
+  function ensureCoinBadge(){let e=$b("menuCoinStock");if(e&&!e.dataset.bound){e.dataset.bound="1";e.onclick=openModal}return e}
   function refresh(){
+    ensureLapingStart();
     const on=active(),badge=ensureCoinBadge();if(badge)badge.classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");return}
     const c=getN(K.coins),w=getN(K.words),inv=getInv();if(badge)badge.textContent=`🪙 ${c}`;
     $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`${w} mot${w>1?"s":""} disponible${w>1?"s":""}`;
@@ -2834,7 +2842,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   function showTab(which){const coins=which==="coins";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",coins);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",!coins)}
   function openModal(){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab("coins");refresh()}
   window.betaMutationWordEarned=function(){if(!active())return;localStorage.setItem(K.words,String(getN(K.words)+1));refresh()};
-  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaShopClose").onclick=()=>{$b("betaShopModal").classList.add("hidden")};
+  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");const closeShop=()=>{if(!rolling)$b("betaShopModal").classList.add("hidden")};$b("betaShopClose").onclick=closeShop;$b("betaShopBack").onclick=closeShop;
   $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
   $b("betaRollBtn").onclick=()=>{
     if(!active()||rolling||getN(K.words)<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";localStorage.setItem(K.words,String(getN(K.words)-WORD_COST));refresh();
