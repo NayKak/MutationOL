@@ -1617,6 +1617,7 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
     <div class="soloFinal">Partie terminée</div>
     <div class="soloFinalScore"><b id="soloFinalScore">0</b></div>
     <div id="soloBestMsg" class="msg"></div>
+    <div id="soloSolutions" class="history hidden" style="justify-content:center"></div>
     <button id="soloFinishBtn" type="button">Terminer la partie</button>
   </div>
   <button id="soloQuit" type="button" class="leaveButton">Quitter</button>
@@ -2257,6 +2258,17 @@ function soloLoseLife(){
   $("soloChoices").innerHTML=a.map(w=>`<button type="button" class="soloChoice" data-w="${w}">${w.toUpperCase()}</button>`).join("");
   document.querySelectorAll(".soloChoice").forEach(b=>b.onclick=()=>soloBegin(b.dataset.w));
 }
+function possibleSolo(w,limit=3){
+  if(!dictReady||!w)return [];
+  let used=new Set((solo?.history||[]).map(key)),a=[];
+  for(let x of WORDS){
+    if(!used.has(key(x))&&mutation(w,x)){
+      a.push(WORD_FORM.get(key(x))||x);
+      if(a.length>=limit)break;
+    }
+  }
+  return a;
+}
 async function soloFinish(){
   clearInterval(soloTick);
   $("soloPlay").classList.add("hidden");
@@ -2264,7 +2276,10 @@ async function soloFinish(){
   $("soloEnd").classList.remove("hidden");
   $("soloQuit").classList.add("hidden");
   $("soloFinalScore").textContent=solo.score;
-  $("soloBestMsg").textContent="Clique sur « Terminer la partie » pour valider ton score.";
+  const sols=possibleSolo(solo.current,3);
+  $("soloSolutions").classList.toggle("hidden",!sols.length);
+  $("soloSolutions").innerHTML=sols.map(w=>`<span class="pill" style="font-weight:850;color:var(--ok)">${marked(solo.current,w)}</span>`).join("");
+  $("soloBestMsg").textContent=sols.length?"Mots possibles :":"Clique sur « Terminer la partie » pour valider ton score.";
   $("soloBestMsg").className="msg";
   $("soloFinishBtn").disabled=false;
   $("soloFinishBtn").textContent="Terminer la partie";
