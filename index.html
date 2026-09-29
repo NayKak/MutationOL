@@ -2878,8 +2878,18 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const betaNick=()=>($b("profileName")?.textContent||"").trim();
   const active=()=>BETA_NICKS.has(betaNick());
   let rolling=false;
-  function startKey(){return "mutation_beta_50000_both_granted_v1_"+betaNick().toLowerCase()}
-  function ensureBetaStart(){if(!active())return;const k=startKey();if(localStorage.getItem(k)!=="1"){localStorage.setItem(K.coins,"50000");localStorage.setItem(K.words,"50000");localStorage.setItem(k,"1")}}
+  function startKey(){return "mutation_beta_50000_both_granted_v2_"+betaNick().toLowerCase()}
+  function ensureBetaStart(){
+    if(!active())return;
+    const k=startKey();
+    if(localStorage.getItem(k)!=="1"){
+      // Migration v2 : force réellement le solde de test à 50 000 une fois
+      // pour Laping et Lionus, même si une ancienne prime bêta avait déjà été reçue.
+      localStorage.setItem(K.coins,"50000");
+      localStorage.setItem(K.words,"50000");
+      localStorage.setItem(k,"1");
+    }
+  }
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
   function pickVisual(){return reward()}
   function lootHTML(x){return `<div class="betaLoot ${x.cls}"><div>${x.v} 🪙</div></div>`}
