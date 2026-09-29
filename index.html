@@ -2842,7 +2842,14 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   function startKey(){return "mutation_beta_15000_both_granted_v3_"+betaNick().toLowerCase()}
   function ensureBetaStart(){if(!active())return;const k=startKey();if(localStorage.getItem(k)!=="1"){localStorage.setItem(K.coins,"15000");localStorage.setItem(K.words,"15000");localStorage.setItem(k,"1")}}
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
-  function pickVisual(){return reward()}
+  // Distribution VISUELLE de la roulette, volontairement plus variée que les probabilités réelles.
+  // Le gain réel reste calculé exclusivement par reward() : 59 / 25 / 10 / 5 / 1 %.
+  function pickVisual(){
+    const visualWeights=[35,25,18,13,9];
+    let r=Math.random()*100,a=0;
+    for(let i=0;i<rewards.length;i++){a+=visualWeights[i];if(r<a)return rewards[i]}
+    return rewards[0];
+  }
   function lootHTML(x){return `<div class="betaLoot ${x.cls}"><div>${x.v} 🪙</div></div>`}
   function toast(t){let e=document.createElement("div");e.className="betaToast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
   function ensureCurrencyBar(){
