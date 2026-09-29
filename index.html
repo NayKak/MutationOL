@@ -2815,7 +2815,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   <div class="modalCard betaShopCard">
     <button id="betaShopClose" class="modalClose" type="button" aria-label="Fermer">×</button>
     <div class="betaCurrencySummary"><div id="betaShopBalance" class="betaShopBalance">🪙 0 Mutacoins</div><div id="betaWordBalance" class="betaWordBalance">🧬 0 Motations</div></div>
-    <div class="betaTabs"><button id="betaCoinsTab" class="active" type="button">Tirage</button><button id="betaStoreTab" type="button">Boutique</button></div>
+    <div class="betaTabs"><button id="betaCoinsTab" class="active" type="button">Tirage</button><button id="betaStoreTab" type="button">Cosmétiques</button></div>
     <div id="betaCoinsPanel" class="betaPanel">
       <div class="betaBox"><h3>Tirage Mutacoins</h3><p>Gagne des 🧬 en jouant.<br>Échange tes 🧬 contre des 🪙 afin de débloquer des objets uniques.</p>
         <div class="betaRouletteWindow"><div id="betaRouletteTrack" class="betaRouletteTrack"></div></div>
@@ -2823,7 +2823,11 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       </div>
     </div>
     <div id="betaStorePanel" class="betaPanel hidden">
-      <div class="betaBox"><h3>Couleur animale</h3><p>Tourne la roue des raretés et gagne une couleur de pseudo.</p><button id="betaBuyBox" type="button">Roue des couleurs — 100 🪙</button></div>
+      <div class="betaBox betaDirectWheelBox"><h3>Roue des couleurs</h3><p>Tourne la roue et gagne une couleur animale.</p>
+        <div class="betaWheelWrap"><div class="betaWheelPointer"></div><div id="betaRarityWheel" class="betaRarityWheel"><span class="betaWheelGift g0">🎁</span><span class="betaWheelGift g1">🎁</span><span class="betaWheelGift g2">🎁</span><span class="betaWheelGift g3">🎁</span><div class="betaWheelHub"></div></div></div>
+        <div class="betaWheelLegend"><div class="rar-common">Commun · 70%</div><div class="rar-rare">Rare · 25%</div><div class="rar-epic">Épique · 4%</div><div class="rar-legendary">Légendaire · 1%</div></div>
+        <div id="betaWheelResult" class="betaWheelResult"></div><button id="betaWheelSpin" type="button">Tourner — 100 🪙</button>
+      </div>
       <h3 style="margin-top:18px">Inventaire</h3><div id="betaInventory" class="betaInventory"></div>
     </div>
     <button id="betaShopBack" class="betaShopBack secondary" type="button">← Retour au jeu</button>
@@ -2849,7 +2853,10 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 @media(max-width:430px){.betaColorGrid{grid-template-columns:1fr}.betaColorCard{padding:17px}.betaWheelWrap{width:min(220px,62vw)}}
 </style>
 <div id="betaColorModal" class="hidden"><div class="betaColorCard"><button id="betaColorClose" class="modalClose" type="button">×</button><h2>Couleurs</h2><p class="betaColorIntro">Équipe une couleur obtenue dans tes tirages.</p><div id="betaColorInventory" class="betaColorGrid"></div><button id="betaColorBack" type="button" class="secondary">← Retour au profil</button></div></div>
-<div id="betaColorWheelModal" class="hidden"><div class="betaColorCard"><button id="betaWheelClose" class="modalClose" type="button">×</button><h2>Roue des couleurs</h2><p class="betaColorIntro">La roue choisit la rareté, puis une couleur animale de cette rareté.</p><div class="betaWheelWrap"><div class="betaWheelPointer"></div><div id="betaRarityWheel" class="betaRarityWheel"><span class="betaWheelGift g0">🎁</span><span class="betaWheelGift g1">🎁</span><span class="betaWheelGift g2">🎁</span><span class="betaWheelGift g3">🎁</span><div class="betaWheelHub"></div></div></div><div class="betaWheelLegend"><div class="rar-common">Commun · 70%</div><div class="rar-rare">Rare · 25%</div><div class="rar-epic">Épique · 4%</div><div class="rar-legendary">Légendaire · 1%</div></div><div id="betaWheelResult" class="betaWheelResult"></div><button id="betaWheelSpin" type="button">Tourner la roue</button><button id="betaWheelBack" type="button" class="secondary">← Retour à la boutique</button></div></div>
+<style id="beta-direct-wheel-polish">
+.betaDirectWheelBox{padding:14px!important}.betaDirectWheelBox h3{margin:0 0 4px;text-align:center}.betaDirectWheelBox>p{text-align:center;margin:0 0 4px;color:#9fc4ce;font-size:12px}
+#betaStorePanel .betaWheelWrap{width:min(205px,56vw);margin:9px auto 8px}#betaStorePanel .betaWheelLegend{margin:7px 0;gap:5px}#betaStorePanel .betaWheelLegend div{padding:5px 7px;font-size:10px;text-align:center}#betaStorePanel .betaWheelResult{min-height:34px;margin:5px 0;font-size:15px}
+</style>
 <script id="beta-mutacoins-boxes-script">
 (function(){
   const BETA_NICKS=new Set(["Laping","Lionus"]), WORD_COST=50, BOX_COST=100;
@@ -2877,8 +2884,8 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 
   const betaNick=()=>($b("profileName")?.textContent||"").trim();
   const active=()=>BETA_NICKS.has(betaNick());
-  let rolling=false;
-  function startKey(){return "mutation_beta_50000_both_granted_v2_"+betaNick().toLowerCase()}
+  let rolling=false,colorWheelRolling=false,wheelRotation=0;
+  function startKey(){return "mutation_beta_50000_both_granted_v3_"+betaNick().toLowerCase()}
   function ensureBetaStart(){
     if(!active())return;
     const k=startKey();
@@ -2902,10 +2909,10 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   }
   function refresh(){
     ensureBetaStart();
-    const on=active(),cur=ensureCurrencyBar();if(cur.bar)cur.bar.classList.toggle("hidden",!on);if($b("betaColorEquipBtn"))$b("betaColorEquipBtn").classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");$b("betaColorModal")?.classList.add("hidden");$b("betaColorWheelModal")?.classList.add("hidden");return}applyEquippedColor()
+    const on=active(),cur=ensureCurrencyBar();if(cur.bar)cur.bar.classList.toggle("hidden",!on);if($b("betaColorEquipBtn"))$b("betaColorEquipBtn").classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");$b("betaColorModal")?.classList.add("hidden");return}applyEquippedColor()
     const c=getN(K.coins),w=getN(K.words),inv=getInv();if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
     $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`🧬 ${w} Motation${w>1?"s":""}`;
-    $b("betaRollBtn").disabled=rolling||w<WORD_COST;$b("betaBuyBox").disabled=c<BOX_COST;
+    $b("betaRollBtn").disabled=rolling||w<WORD_COST;if($b("betaWheelSpin"))$b("betaWheelSpin").disabled=colorWheelRolling||c<BOX_COST;
     $b("betaInventory").innerHTML=inv.length?inv.map(x=>`<span class="betaItem">${x}</span>`).join(""):'<span class="small">Aucun cosmétique pour le moment.</span>';
   }
   function showTab(which){const coins=which==="coins";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",coins);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",!coins)}
@@ -2955,11 +2962,8 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     };
     requestAnimationFrame(animateRoll);
   };
-  $b("betaBuyBox").onclick=()=>{if(!active()||rolling||getN(K.coins)<BOX_COST)return;$b("betaColorWheelModal").classList.remove("hidden");$b("betaWheelResult").innerHTML=""};
-  let colorWheelRolling=false,wheelRotation=0;
   $b("betaWheelSpin").onclick=()=>{if(!active()||colorWheelRolling)return;let c=getN(K.coins);if(c<BOX_COST){toast("Pas assez de Mutacoins");return}c-=BOX_COST;localStorage.setItem(K.coins,String(c));refresh();colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),sectorCenter=45+rarityIndex*90,jitter=(Math.random()*44-22),land=sectorCenter+jitter,targetMod=(360-(land%360))%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(()=>{const owned=getColors();if(!owned.includes(item.id)){owned.push(item.id);setColors(owned)}$b("betaWheelResult").innerHTML=`<span class="${rarityClass(item.rarity)}">${item.rarity}</span> — ${item.name}<small>${owned.filter(x=>x===item.id).length?"Ajouté à ton inventaire de couleurs.":"Couleur obtenue."}</small>`;colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=openColorInventory;$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});
-  const closeWheel=()=>{if(!colorWheelRolling)$b("betaColorWheelModal").classList.add("hidden")};$b("betaWheelClose").onclick=closeWheel;$b("betaWheelBack").onclick=closeWheel;$b("betaColorWheelModal").addEventListener("click",e=>{if(e.target===$b("betaColorWheelModal"))closeWheel()});
   const n=$b("profileName");if(n)new MutationObserver(refresh).observe(n,{childList:true,subtree:true,characterData:true});setInterval(refresh,1500);refresh();
 })();
 </script>
