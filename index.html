@@ -1599,14 +1599,12 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   </div>
 </div>
 <div id="resetSoloModal" class="modal hidden"><div class="modalCard">
-  <button id="closeResetSolo" type="button" class="modalX">×</button>
   <h3>Supprimer le meilleur score solo ?</h3>
   <p>Ton Palmarès solo repartira à <strong>0 mot</strong> et ton entrée sera supprimée du classement solo. Cette action est irréversible.</p>
   <div class="confirmActions"><button id="cancelResetSolo" type="button" class="secondary">Annuler</button><button id="confirmResetSolo" type="button" class="leaveButton">Oui, remettre à zéro</button></div>
 </div></div>
 
 <div id="deleteProfileModal" class="modal hidden"><div class="modalCard">
-  <button id="closeDeleteProfile" type="button" class="modalX">×</button>
   <h3>Supprimer mon profil et toutes mes données ?</h3>
   <p>Ton profil Mutation, ton pseudo, tes préférences, ton Palmarès solo, ton classement et tes données liées au jeu seront supprimés. Cette action est irréversible.</p>
   <div class="confirmActions"><button id="cancelDeleteProfile" type="button" class="secondary">Annuler</button><button id="confirmDeleteProfile" type="button" class="leaveButton">Supprimer définitivement</button></div>
@@ -2464,14 +2462,14 @@ function openSimpleModal(id){
   }
   el.classList.remove("hidden")
 }
-function closeSimpleModal(id){$(id).classList.add("hidden")}
+function closeSimpleModal(id){const el=$(id);if(!el)return;el.classList.add("hidden");el.style.removeProperty("display")}
 $("anonymousHelp").onclick=()=>openSimpleModal("anonymousHelpModal");
 $("okAnonymousHelp").onclick=()=>closeSimpleModal("anonymousHelpModal");
 
 $("resetSoloHelp").onclick=e=>{e.stopPropagation();openSimpleModal("resetSoloHelpModal")};
 $("closeResetSoloHelp").onclick=$("okResetSoloHelp").onclick=()=>closeSimpleModal("resetSoloHelpModal");
 $("resetSoloBest").onclick=()=>openSimpleModal("resetSoloModal");
-$("closeResetSolo").onclick=$("cancelResetSolo").onclick=()=>closeSimpleModal("resetSoloModal");
+$("cancelResetSolo").onclick=()=>closeSimpleModal("resetSoloModal");
 $("confirmResetSolo").onclick=async()=>{
   const b=$("confirmResetSolo");b.disabled=true;
   try{
@@ -2489,7 +2487,7 @@ $("confirmResetSolo").onclick=async()=>{
 $("deleteProfileHelp").onclick=e=>{e.stopPropagation();openSimpleModal("deleteProfileHelpModal")};
 $("closeDeleteProfileHelp").onclick=$("okDeleteProfileHelp").onclick=()=>closeSimpleModal("deleteProfileHelpModal");
 $("deleteProfileData").onclick=()=>openSimpleModal("deleteProfileModal");
-$("closeDeleteProfile").onclick=$("cancelDeleteProfile").onclick=()=>closeSimpleModal("deleteProfileModal");
+$("cancelDeleteProfile").onclick=()=>closeSimpleModal("deleteProfileModal");
 $("confirmDeleteProfile").onclick=async()=>{
   const b=$("confirmDeleteProfile");b.disabled=true;
   try{
@@ -2919,7 +2917,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       </div>
     </div>
     <div id="betaInventoryPanel" class="betaPanel hidden">
-      <div class="betaBox"><p class="betaInventoryIntro">Tourne la roue pour obtenir des objets.</p><div id="betaInventory" class="betaInventoryList"></div></div>
+      <div class="betaBox"><p class="betaInventoryIntro">Tourne la roue pour obtenir des objets.</p><button id="betaSellAllDuplicates" type="button" class="secondary betaSellAllDuplicates">Vendre tous les doublons</button><div id="betaInventory" class="betaInventoryList"></div></div>
     </div>
     <button id="betaShopBack" class="betaShopBack secondary" type="button">← Retour au jeu</button>
   </div>
@@ -2943,6 +2941,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 @keyframes betaShimmer{to{background-position:220% 0}}
 @media(max-width:430px){#betaColorModal,#betaColorWheelModal,#betaTypeModal{padding:10px!important}.betaColorGrid{grid-template-columns:1fr}.betaColorCard{width:100%!important;max-width:calc(100vw - 20px)!important;padding:17px!important;margin:auto!important}.betaWheelWrap{width:min(220px,62vw)}}
 
+.betaSellAllDuplicates{display:block!important;width:min(100%,320px)!important;margin:10px auto 14px!important}
 .betaTabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}.betaInventoryList{display:grid;gap:12px}.betaInvType{background:#081f29;border:1px solid #245765;border-radius:13px;padding:11px}.betaInvType h3{margin:0 0 8px;font-size:15px}.betaInvRarity{margin-top:9px}.betaInvRarityTitle{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:950;opacity:.8;margin-bottom:5px}.betaInvItems{display:grid;gap:6px}.betaInvItem{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%!important;margin:0!important;padding:9px 10px!important;background:#0b2a34!important;border:1px solid #285a67!important;border-radius:10px!important;text-align:left}.betaInvItem.equipped{border-color:#63ef55!important;box-shadow:0 0 0 1px #63ef5544 inset}.betaInvName{min-width:0;font-weight:850}.betaInvCount{white-space:nowrap;font-size:11px;opacity:.8}.betaInventoryIntro{text-align:center;color:#9fc4ce;font-size:12px}.betaInvEmpty{padding:10px;text-align:center;color:#86aab4;font-size:12px}.betaActionSheet{position:fixed;inset:0;z-index:100020;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px}.betaActionSheet.hidden{display:none}.betaActionCard{width:min(390px,calc(100vw - 28px));background:#071923;border:1px solid #2b6978;border-radius:16px;padding:18px;box-shadow:0 22px 70px #000b}.betaActionCard h3{text-align:center;margin:0 0 5px}.betaActionCard p{text-align:center;color:#9fc4ce;font-size:12px}.betaActionButtons{display:grid;gap:8px;margin-top:12px}.betaBadgeInline{display:inline-flex;align-items:center;margin-left:5px;font-size:.78em}.betaAvatarFrame{border-radius:50%;box-shadow:0 0 0 3px var(--frame-color,#63ef55),0 0 12px var(--frame-color,#63ef55)}
 </style>
 <div id="betaInventoryAction" class="betaActionSheet hidden"><div class="betaActionCard"><h3 id="betaActionTitle">Objet</h3><p id="betaActionInfo"></p><div class="betaActionButtons"><button id="betaActionEquip" type="button">Équiper</button><button id="betaActionSell" type="button" class="secondary">Vendre</button><button id="betaActionCancel" type="button" class="secondary">Annuler</button></div></div></div>
@@ -3024,6 +3023,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const isAdmin=()=>ADMIN_UIDS.has(window.mutationEconomy?.auth?.currentUser?.uid||"");
   const active=()=>!!window.mutationEconomy?.auth?.currentUser && !window.mutationEconomy.auth.currentUser.isAnonymous;
   let rolling=false,colorWheelRolling=false,wheelRotation=0;
+  function shopBusy(){return rolling||colorWheelRolling}
+  function syncShopBusy(){
+    const modal=$b("betaShopModal");if(!modal)return;
+    const busy=shopBusy();
+    modal.classList.toggle("betaBusy",busy);
+    modal.querySelectorAll("button").forEach(btn=>{
+      if(busy)btn.disabled=true;
+    });
+  }
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
   function pickVisual(){
     // Répartition VISUELLE uniquement : 20% pour chacune des 5 cartes.
@@ -3042,17 +3050,17 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const on=active(),cur=ensureCurrencyBar(),mainMenuVisible=!!$b("playMenu")&&!$b("playMenu").classList.contains("hidden");if(cur.bar)cur.bar.classList.toggle("hidden",!on||!mainMenuVisible);for(const id of ["betaColorEquipBtn","betaFrameEquipBtn","betaBadgeEquipBtn"])if($b(id))$b(id).classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");$b("betaColorModal")?.classList.add("hidden");return}applyEquippedColor()
     const c=wallet.mutacoins||0,w=wallet.motations||0;if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
     $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`🧬 ${w} Motation${w>1?"s":""}`;
-    $b("betaRollBtn").disabled=rolling||w<WORD_COST;if($b("betaWheelSpin"))$b("betaWheelSpin").disabled=colorWheelRolling||c<BOX_COST;
+    $b("betaRollBtn").disabled=rolling||colorWheelRolling||w<WORD_COST;if($b("betaWheelSpin"))$b("betaWheelSpin").disabled=rolling||colorWheelRolling||c<BOX_COST;syncShopBusy();
     renderMainInventory();
     for(const id of ["adminAddMotations","adminAddMutacoins"]){const e=$b(id);if(e)e.classList.toggle("hidden",!isAdmin())}
   }
   function showTab(which){const coins=which==="coins",store=which==="store",inv=which==="inventory";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",!store);$b("betaInventoryPanel").classList.toggle("hidden",!inv);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",store);$b("betaInventoryTab").classList.toggle("active",inv);if(inv)renderMainInventory()}
   function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab(tab);refresh()}
   window.betaMutationWordEarned=async function(source){if(!active())return;try{wallet.motations=await window.mutationEconomy.changeWallet("motations",1);refresh()}catch(e){console.warn("Gain Motation refusé",e)}};
-  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaInventoryTab").onclick=()=>showTab("inventory");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden")};$b("betaShopClose").onclick=closeShop;$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();closeShop()};
-  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
+  $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");$b("betaInventoryTab").onclick=()=>showTab("inventory");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden")};$b("betaShopClose").onclick=()=>{if(!shopBusy())closeShop()};$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();if(!shopBusy())closeShop()};
+  $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!shopBusy())$b("betaShopModal").classList.add("hidden")});
   $b("betaRollBtn").onclick=async()=>{
-    if(!active()||rolling||wallet.motations<WORD_COST)return;rolling=true;$b("betaRollResult").textContent="";try{wallet.motations=await window.mutationEconomy.changeWallet("motations",-WORD_COST);refresh()}catch(e){rolling=false;toast("Paiement refusé");return}
+    if(!active()||shopBusy()||wallet.motations<WORD_COST)return;rolling=true;syncShopBusy();$b("betaRollResult").textContent="";try{wallet.motations=await window.mutationEconomy.changeWallet("motations",-WORD_COST);refresh()}catch(e){rolling=false;refresh();toast("Paiement refusé");return}
     const win=reward(),items=Array.from({length:34},pickVisual);items[28]=win;const track=$b("betaRouletteTrack");track.parentElement.classList.remove("betaHasWinner");track.style.transition="none";track.style.transform="translateX(0)";track.innerHTML=items.map(lootHTML).join("");void track.offsetWidth;
     // Le repère blanc peut s'arrêter n'importe où sur la carte gagnante, y compris près de ses bords.
     // Une fois la roulette arrêtée, la carte glisse ensuite jusqu'au centre avant d'afficher le gain.
@@ -3093,8 +3101,32 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     };
     requestAnimationFrame(animateRoll);
   };
-  $b("betaWheelSpin").onclick=async()=>{if(!active()||colorWheelRolling)return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST);refresh()}catch(e){toast("Paiement refusé");return}colorWheelRolling=true;$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const winOverlay=$b("betaWheelWinOverlay");if(winOverlay){winOverlay.innerHTML="";winOverlay.classList.add("hidden")}const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),matchingSectors=[rarityIndex,rarityIndex+4,rarityIndex+8],sectorIndex=matchingSectors[Math.floor(Math.random()*matchingSectors.length)],sectorCenter=sectorIndex*30,jitter=(Math.random()*20-10),land=sectorCenter+jitter,targetMod=(90-(land%360)+360)%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const before=colorCount(item.id),isNew=before===0;try{const qty=await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=qty}catch(e){console.warn("Gain cosmétique refusé",e)}if(winOverlay){const nameSizeClass=item.name.length>22?" very-long-name":item.name.length>15?" long-name":"";winOverlay.innerHTML=`<div class="betaWheelWinCard ${rarityClass(item.rarity)}${nameSizeClass}"><span>${item.rarity}</span><b>${item.name}</b></div>`;winOverlay.classList.remove("hidden")}$b("betaWheelResult").innerHTML="";colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
+  $b("betaWheelSpin").onclick=async()=>{if(!active()||shopBusy())return;if(wallet.mutacoins<BOX_COST){toast("Pas assez de Mutacoins");return}colorWheelRolling=true;syncShopBusy();try{wallet.mutacoins=await window.mutationEconomy.changeWallet("mutacoins",-BOX_COST);refresh()}catch(e){colorWheelRolling=false;refresh();toast("Paiement refusé");return}$b("betaWheelSpin").disabled=true;$b("betaWheelResult").innerHTML="";const winOverlay=$b("betaWheelWinOverlay");if(winOverlay){winOverlay.innerHTML="";winOverlay.classList.add("hidden")}const rarity=drawRarity(),item=drawAnimalColor(rarity.name),rarityIndex=rarityOdds.findIndex(x=>x.name===rarity.name),matchingSectors=[rarityIndex,rarityIndex+4,rarityIndex+8],sectorIndex=matchingSectors[Math.floor(Math.random()*matchingSectors.length)],sectorCenter=sectorIndex*30,jitter=(Math.random()*20-10),land=sectorCenter+jitter,targetMod=(90-(land%360)+360)%360,currentMod=((wheelRotation%360)+360)%360,delta=(targetMod-currentMod+360)%360;wheelRotation+=360*7+delta;const wheel=$b("betaRarityWheel");wheel.style.transition="transform 4.8s cubic-bezier(.12,.68,.12,1)";wheel.style.transform=`rotate(${wheelRotation}deg)`;setTimeout(async()=>{const before=colorCount(item.id),isNew=before===0;try{const qty=await window.mutationEconomy.addColor(item.id);cosmeticState.colors[item.id]=qty}catch(e){console.warn("Gain cosmétique refusé",e)}if(winOverlay){const nameSizeClass=item.name.length>22?" very-long-name":item.name.length>15?" long-name":"";winOverlay.innerHTML=`<div class="betaWheelWinCard ${rarityClass(item.rarity)}${nameSizeClass}"><span>${item.rarity}</span><b>${item.name}</b></div>`;winOverlay.classList.remove("hidden")}$b("betaWheelResult").innerHTML="";colorWheelRolling=false;$b("betaWheelSpin").disabled=false;refresh()},5000)};
   $b("betaColorEquipBtn").onclick=()=>openProfileType("color");$b("betaFrameEquipBtn").onclick=()=>openProfileType("frame");$b("betaBadgeEquipBtn").onclick=()=>openProfileType("badge");$b("betaColorClose").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorBack").onclick=()=>$b("betaColorModal").classList.add("hidden");$b("betaColorModal").addEventListener("click",e=>{if(e.target===$b("betaColorModal"))$b("betaColorModal").classList.add("hidden")});$b("betaTypeClose").onclick=$b("betaTypeBack").onclick=()=>$b("betaTypeModal").classList.add("hidden");$b("betaTypeModal").addEventListener("click",e=>{if(e.target===$b("betaTypeModal"))$b("betaTypeModal").classList.add("hidden")});
+  $b("betaSellAllDuplicates").onclick=async()=>{
+    const duplicates=animalColors.map(item=>({item,qty:colorCount(item.id)})).filter(x=>x.qty>1);
+    if(!duplicates.length){toast("Aucun doublon à vendre");return}
+    const totalItems=duplicates.reduce((sum,x)=>sum+(x.qty-1),0);
+    const totalValue=duplicates.reduce((sum,x)=>sum+(x.qty-1)*(sellValues[x.item.rarity]||0),0);
+    if(!confirm(`Vendre ${totalItems} doublon${totalItems>1?"s":""} pour ${totalValue} 🧬 ?\n\nUn exemplaire de chaque objet sera conservé.`))return;
+    const btn=$b("betaSellAllDuplicates");btn.disabled=true;
+    let sold=0,gained=0,failed=false;
+    try{
+      for(const {item,qty} of duplicates){
+        const price=sellValues[item.rarity]||0;
+        for(let i=1;i<qty;i++){
+          try{
+            const out=await window.mutationEconomy.sellColor(item.id,price);
+            wallet.motations=out.motations;cosmeticState.colors[item.id]=out.qty;sold++;gained+=price;
+          }catch(e){console.warn("Vente doublon refusée",item.id,e);failed=true;break}
+        }
+      }
+      refresh();
+      if(sold)toast(`Vendu${sold>1?"s":""} ${sold} doublon${sold>1?"s":""} · +${gained} 🧬`);
+      else toast("Aucun doublon vendu");
+      if(failed)console.warn("Certaines ventes de doublons ont été refusées par Firebase.");
+    }finally{btn.disabled=false}
+  };
   $b("betaActionCancel").onclick=closeInventoryAction;$b("betaInventoryAction").addEventListener("click",e=>{if(e.target===$b("betaInventoryAction"))closeInventoryAction()});$b("betaActionEquip").onclick=async()=>{if(!selectedInventoryItem)return;await equipInventoryColor(selectedInventoryItem.id);closeInventoryAction()};$b("betaActionSell").onclick=async()=>{const x=selectedInventoryItem?.item;if(!x)return;const price=sellValues[x.rarity]||0;try{const out=await window.mutationEconomy.sellColor(x.id,price);wallet.motations=out.motations;cosmeticState.colors[x.id]=out.qty;closeInventoryAction();refresh();toast(`Vendu +${price} 🧬`)}catch(e){console.warn(e);if(Number.isFinite(e?.actualQty)){cosmeticState.colors[x.id]=e.actualQty;refresh();toast(e.actualQty>1?"Vente refusée":"Aucun doublon à vendre")}else toast("Vente refusée")}};
   let loadedUid="",loadingState=false;
   async function loadFirebaseState(force=false){
@@ -3169,6 +3201,8 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 }
 
 /* V99 — espace sous la roue */
+#betaShopModal.betaBusy .betaShopCard button{cursor:not-allowed!important;opacity:.48!important}
+#betaShopModal.betaBusy #betaRollBtn,#betaShopModal.betaBusy #betaWheelSpin{opacity:.72!important}
 #betaStorePanel #betaWheelSpin{margin-top:34px!important;}
 @media(max-width:430px){#betaStorePanel #betaWheelSpin{margin-top:30px!important;}}
 
