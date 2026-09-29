@@ -1504,8 +1504,11 @@ body{background:radial-gradient(circle at top,#0b3542,#020910 52%);color:#f7fcff
   <button id="tabPlay" type="button" class="tabBtn active">Jouer</button>
   <button id="tabRank" type="button" class="tabBtn">Classement</button>
   <button id="rulesBtn" type="button" class="tabBtn">Règles</button>
-  <button id="menuCoinStock" type="button" class="tabBtn hidden" title="Ouvrir les Mutacoins et la boutique">🪙 0</button>
 </nav>
+<div id="betaCurrencyBar" class="betaCurrencyBar hidden" aria-label="Monnaies">
+  <button id="menuMotationStock" type="button" class="betaCurrencyBtn betaMotationBtn" title="Ouvrir les tirages Mutacoins"><span>🧬</span><b id="menuMotationValue">0</b><small>Motations</small></button>
+  <button id="menuCoinStock" type="button" class="betaCurrencyBtn betaCoinBtn" title="Ouvrir la boutique"><span>🪙</span><b id="menuCoinValue">0</b><small>Mutacoins</small></button>
+</div>
 <div id="playMenu">
   <div class="modeDivider"><span>Partie classée</span></div>
   <div class="modeSection">
@@ -2776,9 +2779,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 </script>
 
 <style id="beta-mutacoins-boxes">
-#menuCoinStock{margin-left:auto!important;display:inline-flex;align-items:center;justify-content:center;gap:4px;color:#ffe58a!important;font-weight:900!important;white-space:nowrap}
-#menuCoinStock.hidden{display:none!important}
-#menuCoinStock:hover{color:#fff0a8!important}
+.gameTabs{justify-content:center!important;overflow:visible!important;flex-wrap:wrap!important}
+.gameTabs .tabBtn{flex:0 1 auto!important}
+.betaCurrencyBar{display:grid;grid-template-columns:minmax(0,190px) minmax(0,190px);justify-content:center;gap:10px;margin:0 auto 14px;width:100%;box-sizing:border-box}
+.betaCurrencyBar.hidden{display:none!important}
+.betaCurrencyBtn{margin:0!important;min-width:0!important;padding:8px 12px!important;border-radius:13px!important;display:grid!important;grid-template-columns:auto auto;grid-template-rows:auto auto;align-items:center;justify-content:center;column-gap:7px;line-height:1!important;background:#092832!important;border:1px solid #225d6c!important;box-shadow:none!important}
+.betaCurrencyBtn>span{grid-row:1/3;font-size:20px}.betaCurrencyBtn>b{font-size:15px;text-align:left}.betaCurrencyBtn>small{font-size:9px;text-align:left;opacity:.72;text-transform:uppercase;letter-spacing:.04em}
+.betaMotationBtn{color:#8dffb2!important}.betaCoinBtn{color:#ffe58a!important}
+.betaCurrencyBtn:hover{border-color:#2edcf5!important;transform:translateY(-1px)}
+@media(max-width:480px){.gameTabs{justify-content:center!important}.betaCurrencyBar{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}.betaCurrencyBtn{padding:8px 7px!important}.betaCurrencyBtn>b{font-size:14px}}
 #betaShopModal{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:100vh!important;margin:0!important;padding:14px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;z-index:100000!important}
 #betaShopModal.hidden{display:none!important}
 .betaShopCard{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:min(500px,calc(100vw - 28px))!important;max-width:500px!important;max-height:calc(100dvh - 28px)!important;margin:auto!important;overflow:auto!important;box-sizing:border-box!important}
@@ -2796,15 +2805,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     <button id="betaShopClose" class="modalClose" type="button" aria-label="Fermer">×</button>
     <h2>Mutacoins 🪙</h2>
     <div id="betaShopBalance" class="betaShopBalance">🪙 0 Mutacoins</div>
-    <div id="betaWordBalance" class="betaWordBalance">0 mots disponibles</div>
+    <div id="betaWordBalance" class="betaWordBalance">🧬 0 Motations</div>
     <div class="betaTabs"><button id="betaCoinsTab" class="active" type="button">Tirage</button><button id="betaStoreTab" type="button">Boutique</button></div>
     <div id="betaCoinsPanel" class="betaPanel">
-      <div class="betaBox"><h3>Tirage Mutacoins</h3><p>Un tirage coûte <b>50 mots</b>. Les mots gagnés en solo et en multijoueur s'accumulent ici.</p>
+      <div class="betaBox"><h3>Tirage Mutacoins</h3><p>Un tirage coûte <b>50 Motations 🧬</b>. Chaque mot réussi en solo ou en multijoueur rapporte 1 Motation.</p>
         <div class="betaOdds">
           <div class="betaOdd r-common"><b>59%</b>5 🪙</div><div class="betaOdd r-rare"><b>25%</b>10 🪙</div><div class="betaOdd r-epic"><b>10%</b>25 🪙</div><div class="betaOdd r-mythic"><b>5%</b>50 🪙</div><div class="betaOdd r-legendary"><b>1%</b>100 🪙</div>
         </div>
         <div class="betaRouletteWindow"><div id="betaRouletteTrack" class="betaRouletteTrack"></div></div>
-        <button id="betaRollBtn" type="button">Lancer — 50 mots</button><div id="betaRollResult" class="betaResult"></div>
+        <button id="betaRollBtn" type="button">Lancer — 50 🧬</button><div id="betaRollResult" class="betaResult"></div>
       </div>
     </div>
     <div id="betaStorePanel" class="betaPanel hidden">
@@ -2824,23 +2833,28 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   const getInv=()=>{try{return JSON.parse(localStorage.getItem(K.inv)||"[]")}catch{return []}},setInv=a=>localStorage.setItem(K.inv,JSON.stringify(a));
   const active=()=>($b("profileName")?.textContent||"").trim()===BETA_NICK;
   let rolling=false;
-  const START_KEY="mutation_beta_laping_15000_granted";
-  function ensureLapingStart(){if(!active())return;if(localStorage.getItem(START_KEY)!=="1"){localStorage.setItem(K.coins,"15000");localStorage.setItem(START_KEY,"1")}}
+  const START_KEY="mutation_beta_laping_15000_both_granted_v2";
+  function ensureLapingStart(){if(!active())return;if(localStorage.getItem(START_KEY)!=="1"){localStorage.setItem(K.coins,"15000");localStorage.setItem(K.words,"15000");localStorage.setItem(START_KEY,"1")}}
   function reward(){let r=Math.random()*100,a=0;for(const x of rewards){a+=x.p;if(r<a)return x}return rewards[0]}
   function pickVisual(){return reward()}
   function lootHTML(x){return `<div class="betaLoot ${x.cls}"><div>${x.v} 🪙<small>${x.rarity}</small></div></div>`}
   function toast(t){let e=document.createElement("div");e.className="betaToast";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
-  function ensureCoinBadge(){let e=$b("menuCoinStock");if(e&&!e.dataset.bound){e.dataset.bound="1";e.onclick=openModal}return e}
+  function ensureCurrencyBar(){
+    const bar=$b("betaCurrencyBar"),m=$b("menuMotationStock"),c=$b("menuCoinStock");
+    if(m&&!m.dataset.bound){m.dataset.bound="1";m.onclick=()=>openModal("coins")}
+    if(c&&!c.dataset.bound){c.dataset.bound="1";c.onclick=()=>openModal("store")}
+    return {bar,m,c};
+  }
   function refresh(){
     ensureLapingStart();
-    const on=active(),badge=ensureCoinBadge();if(badge)badge.classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");return}
-    const c=getN(K.coins),w=getN(K.words),inv=getInv();if(badge)badge.textContent=`🪙 ${c}`;
-    $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`${w} mot${w>1?"s":""} disponible${w>1?"s":""}`;
+    const on=active(),cur=ensureCurrencyBar();if(cur.bar)cur.bar.classList.toggle("hidden",!on);if(!on){$b("betaShopModal")?.classList.add("hidden");return}
+    const c=getN(K.coins),w=getN(K.words),inv=getInv();if($b("menuCoinValue"))$b("menuCoinValue").textContent=c;if($b("menuMotationValue"))$b("menuMotationValue").textContent=w;
+    $b("betaShopBalance").textContent=`🪙 ${c} Mutacoins`;$b("betaWordBalance").textContent=`🧬 ${w} Motation${w>1?"s":""}`;
     $b("betaRollBtn").disabled=rolling||w<WORD_COST;$b("betaBuyBox").disabled=c<BOX_COST;
     $b("betaInventory").innerHTML=inv.length?inv.map(x=>`<span class="betaItem">${x}</span>`).join(""):'<span class="small">Aucun cosmétique pour le moment.</span>';
   }
   function showTab(which){const coins=which==="coins";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",coins);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",!coins)}
-  function openModal(){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab("coins");refresh()}
+  function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab(tab);refresh()}
   window.betaMutationWordEarned=function(){if(!active())return;localStorage.setItem(K.words,String(getN(K.words)+1));refresh()};
   $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");const closeShop=()=>{if(!rolling)$b("betaShopModal").classList.add("hidden")};$b("betaShopClose").onclick=closeShop;$b("betaShopBack").onclick=closeShop;
   $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
