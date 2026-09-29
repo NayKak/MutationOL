@@ -2859,7 +2859,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 </style>
 <script id="beta-mutacoins-boxes-script">
 (function(){
-  const BETA_NICKS=new Set(["Laping","Lionus"]), WORD_COST=50, BOX_COST=100;
+  const BETA_NICKS=new Set(["laping","lionus"]), WORD_COST=50, BOX_COST=100;
   const K={coins:"mutation_beta_coins",words:"mutation_beta_words",inv:"mutation_beta_inventory",colors:"mutation_beta_color_inventory",equipped:"mutation_beta_color_equipped"};
   const rewards=[{v:5,p:59,rarity:"Commun",cls:"r-common"},{v:10,p:25,rarity:"Rare",cls:"r-rare"},{v:25,p:10,rarity:"Épique",cls:"r-epic"},{v:50,p:5,rarity:"Mythique",cls:"r-mythic"},{v:100,p:1,rarity:"Légendaire",cls:"r-legendary"}];
   const cosmetics=["🔴 Pseudo rouge","🔵 Pseudo bleu","🧬 Badge Mutation","⚡ Emoji Éclair","👑 Emoji Couronne","✨ Cadre brillant","🌌 Fond cosmique","🐱 Badge Chat"];
@@ -2882,16 +2882,16 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   function drawRarity(){let n=Math.random()*100;return rarityOdds.find(x=>n<x.end)||rarityOdds[0]}
   function drawAnimalColor(rarity){const pool=animalColors.filter(x=>x.rarity===rarity);return pool[Math.floor(Math.random()*pool.length)]}
 
-  const betaNick=()=>($b("profileName")?.textContent||"").trim();
-  const active=()=>BETA_NICKS.has(betaNick());
+  const betaNick=()=>String((typeof profile!=="undefined"&&profile?.nick)||$b("profileName")?.textContent||"").trim();
+  const active=()=>BETA_NICKS.has(betaNick().toLowerCase());
   let rolling=false,colorWheelRolling=false,wheelRotation=0;
-  function startKey(){return "mutation_beta_50000_both_granted_v3_"+betaNick().toLowerCase()}
+  function startKey(){return "mutation_beta_50000_both_granted_v5_"+betaNick().toLowerCase()}
   function ensureBetaStart(){
     if(!active())return;
     const k=startKey();
     if(localStorage.getItem(k)!=="1"){
-      // Migration v2 : force réellement le solde de test à 50 000 une fois
-      // pour Laping et Lionus, même si une ancienne prime bêta avait déjà été reçue.
+      // Migration v5 : attribution fiable via le pseudo du profil (et non seulement le texte affiché).
+      // Laping et Lionus reçoivent 50 000 de chaque monnaie une seule fois sur cette version.
       localStorage.setItem(K.coins,"50000");
       localStorage.setItem(K.words,"50000");
       localStorage.setItem(k,"1");
@@ -2917,7 +2917,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   }
   function showTab(which){const coins=which==="coins";$b("betaCoinsPanel").classList.toggle("hidden",!coins);$b("betaStorePanel").classList.toggle("hidden",coins);$b("betaCoinsTab").classList.toggle("active",coins);$b("betaStoreTab").classList.toggle("active",!coins)}
   function openModal(tab="coins"){if(!active())return;$b("betaShopModal").classList.remove("hidden");showTab(tab);refresh()}
-  window.betaMutationWordEarned=function(){if(!active())return;localStorage.setItem(K.words,String(getN(K.words)+1));refresh()};
+  window.betaMutationWordEarned=function(source){if(!active())return;ensureBetaStart();const next=getN(K.words)+1;localStorage.setItem(K.words,String(next));refresh();};
   $b("betaCoinsTab").onclick=()=>showTab("coins");$b("betaStoreTab").onclick=()=>showTab("store");const closeShop=()=>{$b("betaShopModal")?.classList.add("hidden")};$b("betaShopClose").onclick=closeShop;$b("betaShopBack").onclick=e=>{e.preventDefault();e.stopPropagation();closeShop()};
   $b("betaShopModal").addEventListener("click",e=>{if(e.target===$b("betaShopModal")&&!rolling)$b("betaShopModal").classList.add("hidden")});
   $b("betaRollBtn").onclick=()=>{
