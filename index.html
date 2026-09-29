@@ -3115,15 +3115,15 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const totalItems=duplicates.reduce((sum,x)=>sum+(x.qty-1),0);
     const totalValue=duplicates.reduce((sum,x)=>sum+(x.qty-1)*(sellValues[x.item.rarity]||0),0);
     if(!confirm(`Vendre ${totalItems} doublon${totalItems>1?"s":""} pour ${totalValue} 🧬 ?\n\nUn exemplaire de chaque objet sera conservé.`))return;
-    const btn=$b("betaSellAllDuplicates");btn.disabled=true;
-    let sold=0,gained=0,failed=false;
+    const btn=$b("betaSellAllDuplicates");btn.disabled=true;const originalLabel=btn.textContent;
+    let sold=0,gained=0,failed=false;btn.textContent=`Vente en cours… 0/${totalItems}`;
     try{
       for(const {item,qty} of duplicates){
         const price=sellValues[item.rarity]||0;
         for(let i=1;i<qty;i++){
           try{
             const out=await window.mutationEconomy.sellColor(item.id,price);
-            wallet.motations=out.motations;cosmeticState.colors[item.id]=out.qty;sold++;gained+=price;
+            wallet.motations=out.motations;cosmeticState.colors[item.id]=out.qty;sold++;gained+=price;btn.textContent=`Vente en cours… ${sold}/${totalItems}`;
           }catch(e){console.warn("Vente doublon refusée",item.id,e);failed=true;break}
         }
       }
@@ -3131,7 +3131,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       if(sold)toast(`Vendu${sold>1?"s":""} ${sold} doublon${sold>1?"s":""} · +${gained} 🧬`);
       else toast("Aucun doublon vendu");
       if(failed)console.warn("Certaines ventes de doublons ont été refusées par Firebase.");
-    }finally{btn.disabled=false}
+    }finally{btn.disabled=false;btn.textContent=originalLabel}
   };
   $b("betaActionCancel").onclick=closeInventoryAction;$b("betaInventoryAction").addEventListener("click",e=>{if(e.target===$b("betaInventoryAction"))closeInventoryAction()});$b("betaActionEquip").onclick=async()=>{if(!selectedInventoryItem)return;await equipInventoryColor(selectedInventoryItem.id);closeInventoryAction()};$b("betaActionSell").onclick=async()=>{const x=selectedInventoryItem?.item;if(!x)return;const price=sellValues[x.rarity]||0;try{const out=await window.mutationEconomy.sellColor(x.id,price);wallet.motations=out.motations;cosmeticState.colors[x.id]=out.qty;closeInventoryAction();refresh();toast(`Vendu +${price} 🧬`)}catch(e){console.warn(e);if(Number.isFinite(e?.actualQty)){cosmeticState.colors[x.id]=e.actualQty;refresh();toast(e.actualQty>1?"Vente refusée":"Aucun doublon à vendre")}else toast("Vente refusée")}};
   let loadedUid="",loadingState=false;
@@ -3291,28 +3291,42 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   max-height:calc(100dvh - 24px)!important;
 }
 </style>
-<script id="v102-confirm-visual-viewport-script">
+<script id="v103-confirm-modal-stable-viewport">
 (function(){
   const ids=["resetSoloModal","deleteProfileModal"];
-  function centerConfirmModals(){
-    const vv=window.visualViewport;
-    const cx=vv ? vv.offsetLeft+vv.width/2 : window.innerWidth/2;
-    const cy=vv ? vv.offsetTop+vv.height/2 : window.innerHeight/2;
+  function clean(){
     ids.forEach(id=>{
-      const modal=document.getElementById(id), card=modal?.querySelector(".modalCard");
-      if(!modal||!card||modal.classList.contains("hidden"))return;
-      card.style.setProperty("left",cx+"px","important");
-      card.style.setProperty("top",cy+"px","important");
-      card.style.setProperty("max-height",Math.max(180,(vv?vv.height:window.innerHeight)-24)+"px","important");
+      const modal=document.getElementById(id),card=modal?.querySelector(".modalCard");
+      if(!modal||!card)return;
+      card.style.removeProperty("left");card.style.removeProperty("top");card.style.removeProperty("max-height");
     });
   }
   function init(){
-    ids.forEach(id=>{const m=document.getElementById(id);if(m)new MutationObserver(centerConfirmModals).observe(m,{attributes:true,attributeFilter:["class"]})});
-    window.addEventListener("resize",centerConfirmModals,{passive:true});
-    if(window.visualViewport){visualViewport.addEventListener("resize",centerConfirmModals,{passive:true});visualViewport.addEventListener("scroll",centerConfirmModals,{passive:true})}
-    document.addEventListener("click",e=>{if(e.target.closest("#resetSoloBest,#deleteProfileData"))requestAnimationFrame(centerConfirmModals)},true);
+    ids.forEach(id=>{
+      const modal=document.getElementById(id);
+      if(!modal)return;
+      if(modal.parentElement!==document.body)document.body.appendChild(modal);
+      new MutationObserver(()=>{if(!modal.classList.contains("hidden"))requestAnimationFrame(clean)}).observe(modal,{attributes:true,attributeFilter:["class"]});
+    });
+    clean();
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 </script>
+
+<style id="v103-confirm-modal-final-center">
+#resetSoloModal,#deleteProfileModal{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  margin:0!important;padding:12px!important;box-sizing:border-box!important;overflow:hidden!important;
+  display:none!important;align-items:center!important;justify-content:center!important;
+  z-index:2147483646!important;background:rgba(0,0,0,.72)!important;
+}
+#resetSoloModal:not(.hidden),#deleteProfileModal:not(.hidden){display:flex!important}
+#resetSoloModal.hidden,#deleteProfileModal.hidden{display:none!important}
+#resetSoloModal .modalCard,#deleteProfileModal .modalCard{
+  position:relative!important;inset:auto!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;
+  transform:none!important;margin:0!important;width:min(390px,calc(100vw - 24px))!important;max-width:390px!important;
+  max-height:calc(100dvh - 24px)!important;overflow:auto!important;box-sizing:border-box!important;
+}
+</style>
 </body></html>
