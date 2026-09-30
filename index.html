@@ -3051,7 +3051,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     if(!item)return text.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
     const esc=[...text].map(c=>c.replace(/[&<>]/g,d=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[d])));
     if(item.kind==="solid")return `<span style="color:${item.colors[0]}">${esc.join("")}</span>`;
-    if(item.kind==="alternate")return esc.map((c,i)=>`<span style="color:${item.colors[i%2]}">${c}</span>`).join("");
+    if(item.kind==="alternate")return `<span style="background:linear-gradient(90deg,${item.colors[0]} 0%,${item.colors[1]} 100%);-webkit-background-clip:text;background-clip:text;color:transparent">${esc.join("")}</span>`;
     const effects={
       gold:["linear-gradient(90deg,#7a4d00,#ffd45a,#fff0a0,#b77a00,#ffd45a)","betaShimmer 2.4s linear infinite","0 0 10px #ffd45a55"],
       silver:["linear-gradient(90deg,#707b86,#f7fbff,#9aa8b5,#fff,#7d8994)","betaShimmer 2.4s linear infinite","0 0 10px #ffffff55"],
