@@ -3017,6 +3017,9 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
 .betaProfileNick{display:block;width:100%;font-size:clamp(12px,3.6vw,16px);font-weight:950;white-space:nowrap;overflow:hidden;letter-spacing:-.035em;line-height:1.05}.betaProfileItemName{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;width:100%;margin-top:7px;font-size:9.5px;line-height:1.1;color:#dcecf1;min-height:20px}
 @media(min-width:700px){.betaProfileBackpack{grid-template-columns:repeat(4,minmax(0,1fr))}.betaProfileNick{font-size:15px}}
 @media(max-width:390px){.betaProfileBackpack{gap:6px}.betaProfileCosmeticItem{min-height:88px!important;padding-left:4px!important;padding-right:4px!important}.betaProfileNick{font-size:12px}.betaProfileItemName{font-size:9px}}
+
+/* Progression de collection par rareté */
+.betaCollectionProgress{font-size:.92em;font-weight:800;opacity:.72;letter-spacing:0;text-transform:none}
 </style>
 <script id="beta-mutacoins-boxes-script">
   // Navigation Boutique : ce script est classique alors que le jeu principal est un module.
@@ -3082,6 +3085,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
   window.mutationApplyEquippedColor=applyEquippedColor;
   const sellValues={"Commun":200,"Rare":400,"Épique":750,"Légendaire":1000};
   const rarityOrder={"Commun":0,"Rare":1,"Épique":2,"Légendaire":3};
+  function collectionProgress(rarity){const total=animalColors.filter(x=>x.rarity===rarity).length;const owned=animalColors.filter(x=>x.rarity===rarity&&colorCount(x.id)>0).length;return `${owned}/${total}`} 
   let selectedInventoryItem=null;
   function renderColorInventory(){
     const box=$b("betaColorInventory");
@@ -3089,7 +3093,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
       const owned=getColors().map(id=>colorById(id)).filter(Boolean).sort((a,b)=>(rarityOrder[a.rarity]-rarityOrder[b.rarity])||a.name.localeCompare(b.name,"fr")),eq=cosmeticState.equippedColor||"";
       box.innerHTML=owned.length?["Commun","Rare","Épique","Légendaire"].map(r=>{
         const items=owned.filter(x=>x.rarity===r);if(!items.length)return"";
-        return `<section class="betaProfileRarity"><div class="betaInvRarityTitle ${rarityClass(r)}">${r}</div><div class="betaProfileBackpack">${items.map(x=>`<button class="betaProfileCosmeticItem ${eq===x.id?"equipped":""}" data-rarity="${x.rarity}" data-color-id="${x.id}" type="button"><span class="betaProfileNick">${styledNickHTML(betaNick(),x)}</span><span class="betaProfileItemName">${x.name}</span>${eq===x.id?'<span class="betaProfileEquipped">✓</span>':''}</button>`).join("")}</div></section>`
+        return `<section class="betaProfileRarity"><div class="betaInvRarityTitle ${rarityClass(r)}">${r} <span class="betaCollectionProgress">(${collectionProgress(r)})</span></div><div class="betaProfileBackpack">${items.map(x=>`<button class="betaProfileCosmeticItem ${eq===x.id?"equipped":""}" data-rarity="${x.rarity}" data-color-id="${x.id}" type="button"><span class="betaProfileNick">${styledNickHTML(betaNick(),x)}</span><span class="betaProfileItemName">${x.name}</span>${eq===x.id?'<span class="betaProfileEquipped">✓</span>':''}</button>`).join("")}</div></section>`
       }).join(""):'<div class="betaColorEmpty">Aucune couleur débloquée pour le moment.</div>';
       box.querySelectorAll("[data-color-id]").forEach(btn=>btn.onclick=()=>equipInventoryColor(btn.dataset.colorId));
     }
@@ -3103,7 +3107,7 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     $b("betaSellAllDuplicates")?.classList.toggle("hidden",type!=="color");
     renderMainInventory();
   }
-  function renderMainInventory(){const box=$b("betaInventory");if(!box)return;const colors=getColors().map(id=>colorById(id)).filter(Boolean).sort((a,b)=>(rarityOrder[a.rarity]-rarityOrder[b.rarity])||a.name.localeCompare(b.name,"fr"));const groups={color:{name:"Couleurs",items:colors,type:"color"},frame:{name:"Cadres",items:[],type:"frame"},badge:{name:"Badges",items:[],type:"badge"}};const g=groups[betaInventoryCategory]||groups.color;let body;if(!g.items.length)body=`<div class="betaInvEmpty">Aucun ${g.type==="color"?"objet":g.type==="frame"?"cadre":"badge"} obtenu.</div>`;else body=["Commun","Rare","Épique","Légendaire"].map(r=>{const items=g.items.filter(x=>x.rarity===r);if(!items.length)return"";return `<div class="betaInvRarity"><div class="betaInvRarityTitle ${rarityClass(r)}">${r}</div><div class="betaInvItems">${items.map(x=>`<button class="betaInvItem ${cosmeticState.equippedColor===x.id?"equipped":""}" data-rarity="${x.rarity}" data-inv-type="${g.type}" data-inv-id="${x.id}" type="button"><span class="betaInvPreview"><span class="betaInvNick">${g.type==="color"?styledNickHTML(betaNick(),x):betaNick()}</span><span class="betaInvLabel">${x.name}</span><span class="betaInvRarityLine ${rarityClass(x.rarity)}">${x.rarity}</span></span><span class="betaInvCount">×${colorCount(x.id)}</span></button>`).join("")}</div></div>`}).join("");box.innerHTML=`<section class="betaInvType betaInvTypeSingle">${body}</section>`;box.querySelectorAll("[data-inv-id]").forEach(btn=>btn.onclick=()=>openInventoryAction(btn.dataset.invType,btn.dataset.invId))}
+  function renderMainInventory(){const box=$b("betaInventory");if(!box)return;const colors=getColors().map(id=>colorById(id)).filter(Boolean).sort((a,b)=>(rarityOrder[a.rarity]-rarityOrder[b.rarity])||a.name.localeCompare(b.name,"fr"));const groups={color:{name:"Couleurs",items:colors,type:"color"},frame:{name:"Cadres",items:[],type:"frame"},badge:{name:"Badges",items:[],type:"badge"}};const g=groups[betaInventoryCategory]||groups.color;let body;if(!g.items.length)body=`<div class="betaInvEmpty">Aucun ${g.type==="color"?"objet":g.type==="frame"?"cadre":"badge"} obtenu.</div>`;else body=["Commun","Rare","Épique","Légendaire"].map(r=>{const items=g.items.filter(x=>x.rarity===r);if(!items.length)return"";return `<div class="betaInvRarity"><div class="betaInvRarityTitle ${rarityClass(r)}">${r} <span class="betaCollectionProgress">(${collectionProgress(r)})</span></div><div class="betaInvItems">${items.map(x=>`<button class="betaInvItem ${cosmeticState.equippedColor===x.id?"equipped":""}" data-rarity="${x.rarity}" data-inv-type="${g.type}" data-inv-id="${x.id}" type="button"><span class="betaInvPreview"><span class="betaInvNick">${g.type==="color"?styledNickHTML(betaNick(),x):betaNick()}</span><span class="betaInvLabel">${x.name}</span><span class="betaInvRarityLine ${rarityClass(x.rarity)}">${x.rarity}</span></span><span class="betaInvCount">×${colorCount(x.id)}</span></button>`).join("")}</div></div>`}).join("");box.innerHTML=`<section class="betaInvType betaInvTypeSingle">${body}</section>`;box.querySelectorAll("[data-inv-id]").forEach(btn=>btn.onclick=()=>openInventoryAction(btn.dataset.invType,btn.dataset.invId))}
   async function openInventoryAction(type,id){if(type!=="color")return;const x=colorById(id);if(!x)return;let n=colorCount(id);try{n=await window.mutationEconomy.colorQty(id);cosmeticState.colors[id]=n;renderMainInventory()}catch(e){console.warn("Lecture stock Firebase :",e)}selectedInventoryItem={type,id,item:x};$b("betaActionTitle").textContent=x.name;const price=sellValues[x.rarity]||0;$b("betaActionInfo").textContent=`${x.rarity} · Possédé : ${n}${n>1?` · doublon vendable ${price} 🧬`:""}`;$b("betaActionEquip").textContent=cosmeticState.equippedColor===id?"✓ Équipé":"Équiper";$b("betaActionEquip").disabled=cosmeticState.equippedColor===id;$b("betaActionSell").classList.toggle("hidden",n<=1);$b("betaActionSell").textContent=`Vendre pour ${price} 🧬`;$b("betaInventoryAction").classList.remove("hidden")}
   function closeInventoryAction(){$b("betaInventoryAction")?.classList.add("hidden");selectedInventoryItem=null}
   function openColorInventory(){if(!active())return;renderColorInventory();$b("betaColorModal").classList.remove("hidden")}
@@ -3124,7 +3128,18 @@ $("leaveLobby").onclick=leave;$("quitGame").onclick=leave;$("replay").onclick=as
     const n=Math.random()*100;
     return rarityOdds.find(x=>n<x.end)||rarityOdds[0]
   }
-  function drawAnimalColor(rarity){const pool=animalColors.filter(x=>x.rarity===rarity);return pool[Math.floor(Math.random()*pool.length)]}
+  function drawAnimalColor(rarity){
+    const pool=animalColors.filter(x=>x.rarity===rarity);
+    if(!pool.length)return null;
+    // Un objet déjà possédé a 10× moins de poids qu’un objet manquant.
+    // Si toute la rareté est complétée, tous les objets retrouvent le même poids.
+    const missing=pool.filter(x=>colorCount(x.id)<=0);
+    if(!missing.length)return pool[Math.floor(Math.random()*pool.length)];
+    const weighted=pool.map(item=>({item,weight:colorCount(item.id)>0?1:10}));
+    let roll=Math.random()*weighted.reduce((sum,x)=>sum+x.weight,0);
+    for(const x of weighted){roll-=x.weight;if(roll<0)return x.item}
+    return weighted[weighted.length-1].item
+  }
 
   const betaNick=()=>{
     // Le profil principal vit dans un script module : on lit donc l’identité directement dans le DOM.
